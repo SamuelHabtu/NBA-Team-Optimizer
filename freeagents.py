@@ -1,4 +1,16 @@
 import csv
+import re
+
+def extractPlayerInfo(player_str):
+
+    pattern = r'"(.+?)\s([A-Z,]+)\s'
+    match = re.search(pattern, player_str)
+    if match:
+        player_name = match.group(1)
+        player_position = match.group(2).split(',')
+        return player_name, player_position
+    else:
+        return None, None
 
 def main():
     players = []
@@ -6,18 +18,12 @@ def main():
         csvdata = csv.reader(csvfile, delimiter=',', quotechar='|')
         
         for row in csvdata:
-            print(row)
+            print(row[0])
+            #format is:Player,GP,Pre-season Rank,Current Rank,Rostered %,MPG,FGM,FGA,FG%,FTM,3PTM,3PTA,3PT%,PTS,REB,AST,ST,BL,A/T,PF,
+            #for player it has format of "New Player Note First Inital.Last Name TEAM - Position(s)"
             temp_player = {}
-            temp_player["Player"] = row[0]
-            temp_player["GP"] = row[1]
-            temp_player["FFPG"] = float(row[2][-4:])
-            temp_player["std Dev"] = float(row[3])
-            temp_player["Salary"] = int(row[4][1:])
-            if temp_player["std Dev"]:
-                #only add the player if they have a std. Dev-> basically rules out any one hit wonder players
-                players.append(temp_player)
-
-    #players = bangForBuck(players)
+            name, position = extractPlayerInfo(row[0])
+            print(f"Name:{name} Position: {position}")
     pg_list = []
     sg_list = []
     sf_list = []

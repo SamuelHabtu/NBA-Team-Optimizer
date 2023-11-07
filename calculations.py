@@ -36,7 +36,7 @@ def effiency(players):
                     #higher ffpg wins in this case
                     cur_winner = i
             else:
-                ratio = delta_ffpg/delta_price
+                ratio = abs(delta_ffpg/delta_price)
             
                 #if the ratio is < 1 then we SHOULD swap
                 #if it is 1 then it's a draw and whoever should win is subjective, I am listing a top 15 so hopefully this isnt a problem
