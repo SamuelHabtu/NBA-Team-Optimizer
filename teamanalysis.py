@@ -1,5 +1,36 @@
 import csv
 import itertools
+import random
+
+def randomStart(players, teamsize = 15):
+    return random.sample(players,teamsize)
+
+def evaluateSquad(cur_squad, potential_squad):
+    avgs = averages(potential_squad)
+    cur_avgs = averages(cur_squad)
+    win_counter = 0
+    for category in cur_avgs:
+        win_counter += battle(cur_avgs, avgs, category)
+    return win_counter
+
+def hillClimb(players, max_iterations = 10000, team_size = 15):
+
+    best_squad = optimize(players, teamsize=10)
+    all_squads = list(itertools.combinations(players, team_size))
+    num_wins = []
+    for i in range(len(all_squads)):
+        num_wins.append(0)
+        for j in range(len(all_squads)):
+            battles_won = evaluateSquad(all_squads[j],all_squads[i])
+            if battles_won > 0:
+                num_wins[i] += 1
+
+    max_wins = max(num_wins)
+    winner = num_wins.index(max_wins)
+    
+    
+    return all_squads[winner]
+
 
 def averages(team):
 
@@ -30,12 +61,12 @@ def averages(team):
 
     averages["FG%"] = total_fgm/total_fga
     averages["3PT%"] = total_3pm/total_3pa
-    averages["REB"] = total_reb/len(team)
-    averages["AST"] = total_ast/len(team)
-    averages["STL"] = total_stl/len(team)
-    averages["BLK"] = total_blk/len(team)
+    averages["REB"] = total_reb#/len(team)
+    averages["AST"] = total_ast#/len(team)
+    averages["STL"] = total_stl#/len(team)
+    averages["BLK"] = total_blk#/len(team)
     averages["A/T"] = total_ast/total_to
-    averages["PF"] = -total_pf/len(team) 
+    averages["PF"] = -total_pf#/len(team) 
     
     return averages
 
@@ -54,6 +85,13 @@ def optimize(players, teamsize = 15):
                     current_squad = temp_squad
     return current_squad
 
+def optimize_greedy(players, teamsize=15):
+    current_squad = players[:teamsize]
+    for i in range(len(teamsize)):
+        for j in range(teamsize,len(players)):
+            temp_squad = current_squad[:]
+            temp_squad[i], temp_squad[j] = temp_squad[i], temp_squad[j]
+
 def headToHead(current_squad, temp_squad):
     #returns ture if a team is better than the other
     cur_avgs = averages(current_squad)
@@ -61,7 +99,7 @@ def headToHead(current_squad, temp_squad):
     win_counter = 0
     for category in cur_avgs:
         win_counter += battle(cur_avgs, temp_avgs, category)
-    if win_counter >= 3:
+    if win_counter > 0:
         return True
     return False
 
@@ -69,8 +107,9 @@ def headToHead(current_squad, temp_squad):
 def battle(current, temp, category):
     if temp[category] > current[category]:
         return 1
-    else:
+    elif temp[category] < current[category]:
         return -1
+    return 0
 
 def main():
     
@@ -104,16 +143,32 @@ def main():
             players.append(temp_player)
 
 
-    team_averages = averages(players[:15])
-    print("Here is the optimized SQUAD:")
-    optimized_squad = optimize(players)
+    team_averages = averages(players[:10])
+    optimized_squad = optimize(players[:17], teamsize=10)
+    hill_squad =   hillClimb(players[:17], team_size=10)
     optimized_averages = averages(optimized_squad)
+    hill_averages = averages(hill_squad)
+    print("Optimized squad:")
     for player in optimized_squad:
-        print(f"{player["Name"]}")
-    print(f"{len(optimized_squad)} Players selected!")
-    print("Now let's compare the team Averages!")
+        print(f"{player['Name']}")
+    print("HILL SQUAD:")
+    for player in hill_squad:
+        print(f"{player['Name']}")
+    print("Now let's compare the Hill vs brute force averages!")
     for category in team_averages:
-        print(f"{category}: Before: {team_averages[category]} After: {optimized_averages[category]}")
+        print(f"{category}: Hill: {hill_averages[category]} Optimized: {optimized_averages[category]}-> Better? {hill_averages[category] > optimized_averages[category]}")
+    print(f"is Hill better? : {evaluateSquad(optimized_squad, hill_squad)}")
     
+    hyp_team = ["Ben Simmons BKN - PG","Gordon Hayward CHA - SF","Kentavious Caldwell-Pope DEN - SG","Josh Giddey OKC - SG","Kevon Looney GSW - PF","Mitchell Robinson NYK - C",
+                  "Alperen Sengun HOU - C","No  Kyle Anderson MIN - SF","Dereck Lively II DAL - C", "J. Sochan SAS - PG"]
+    my_picks = []
+    for player in players[:13]:
+        if player["Name"] in hyp_team:
+            my_picks.append(player)
+    my_pick_avgs = averages(my_picks)
+    print("Now we compare my picks to the OPTIMAL")
+    for category in team_averages:
+        print(f"{category}: my Picks: {my_pick_avgs[category]} Hill: {hill_averages[category]} -> Better? {my_pick_avgs[category] > hill_averages[category]}")
+    print(f"Are my Picks better Than Hill Squad? {evaluateSquad(hill_squad, my_picks)}")
 if __name__ == '__main__':
     main()
