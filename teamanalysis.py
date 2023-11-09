@@ -13,23 +13,30 @@ def evaluateSquad(cur_squad, potential_squad):
         win_counter += battle(cur_avgs, avgs, category)
     return win_counter
 
-def hillClimb(players, max_iterations = 10000, team_size = 15):
+def hillClimb(players,num_restarts = 100, max_iterations = 10000, team_size = 15):
 
-    best_squad = optimize(players, teamsize=10)
-    all_squads = list(itertools.combinations(players, team_size))
-    num_wins = []
-    for i in range(len(all_squads)):
-        num_wins.append(0)
-        for j in range(len(all_squads)):
-            battles_won = evaluateSquad(all_squads[j],all_squads[i])
-            if battles_won > 0:
-                num_wins[i] += 1
+    best_squad = None
+    best_score = float("-inf")
+    for _ in range(num_restarts):
+        print(f"Start #{_ + 1}")
+        cur_squad = randomStart(players, team_size)
+        cur_score = sum(normalizedScore(cur_squad))
+        for _ in range(max_iterations):
+            neighbour_squad = cur_squad.copy()
+            index_to_swap = random.randint(0, team_size - 1)
+            new_player = new_player = random.choice([p for p in players if p not in cur_squad])  # Exclude players already in squad
+            neighbour_squad[index_to_swap] = new_player
+            neighbour_score = sum(normalizedScore(neighbour_squad))
+            if neighbour_score > cur_score:
+                cur_squad = neighbour_squad[:]
+                cur_score = neighbour_score
+                if cur_score > best_score:
+                    best_squad = cur_squad[:]
+                    best_score = cur_score
 
-    max_wins = max(num_wins)
-    winner = num_wins.index(max_wins)
+
     
-    
-    return all_squads[winner]
+    return best_squad
 
 
 def averages(team):
@@ -111,6 +118,39 @@ def battle(current, temp, category):
         return -1
     return 0
 
+def normalizedScore(squad):
+
+    stats = averages(squad)
+    min_FG_percent = 0
+    max_FG_percent = 1
+    
+    min_ThreePt_percent = 0
+    max_ThreePt_percent = 1
+    
+    min_REB = 0
+    max_REB = 8650  # Assuming this is the upper limit for rebounds 
+    min_AST = 0
+    max_AST = 8320  # You'll need to determine the maximum possible value for AST based on your league settings
+    min_STL = 0
+    max_STL = 1530  # You'll need to determine the maximum possible value for STL based on your league settings
+    min_BLK = 0
+    max_BLK = 1950  # You'll need to determine the maximum possible value for BLK based on your league settings
+    min_AT = 0
+    max_AT = 42  # You'll need to determine the maximum possible value for A/T based on your league settings
+    min_PF = 0  # You'll need to determine the minimum possible value for PF based on your league settings
+    max_PF = -2720
+    # Normalize each statistic, each stat is also weighted by 0.125
+    normalized_stats = []
+    normalized_stats.append((stats["FG%"] - min_FG_percent) / (max_FG_percent - min_FG_percent)*0.125)
+    normalized_stats.append((stats["3PT%"] - min_ThreePt_percent) / (max_ThreePt_percent - min_ThreePt_percent)*0.125)
+    normalized_stats.append((stats["REB"] - min_REB) / (max_REB - min_REB)*0.125)
+    normalized_stats.append((stats["AST"] - min_AST) / (max_AST - min_AST)*0.125)
+    normalized_stats.append((stats["STL"] - min_STL) / (max_STL - min_STL)*0.125)
+    normalized_stats.append((stats["BLK"] - min_BLK) / (max_BLK - min_BLK)*0.125)
+    normalized_stats.append((stats["A/T"] - min_AT) / (max_AT - min_AT)*0.125)
+    normalized_stats.append(( max_PF - stats["PF"]) / (max_PF - min_PF)*0.125)
+    return normalized_stats
+
 def main():
     
     players = []
@@ -143,9 +183,9 @@ def main():
             players.append(temp_player)
 
 
-    team_averages = averages(players[:10])
-    optimized_squad = optimize(players[:17], teamsize=10)
-    hill_squad =   hillClimb(players[:17], team_size=10)
+    team_averages = averages(players[:15])
+    optimized_squad = optimize(players, teamsize=15)
+    hill_squad =   hillClimb(players, team_size=15)
     optimized_averages = averages(optimized_squad)
     hill_averages = averages(hill_squad)
     print("Optimized squad:")
