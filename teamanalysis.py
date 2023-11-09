@@ -13,7 +13,7 @@ def evaluateSquad(cur_squad, potential_squad):
         win_counter += battle(cur_avgs, avgs, category)
     return win_counter
 
-def hillClimb(players,num_restarts = 100, max_iterations = 10000, team_size = 15):
+def hillClimb(players,num_restarts = 50, max_iterations = 10000, team_size = 15):
 
     best_squad = None
     best_score = float("-inf")
@@ -196,7 +196,7 @@ def main():
         print(f"{player['Name']}")
     print("Now let's compare the Hill vs brute force averages!")
     for category in team_averages:
-        print(f"{category}: Hill: {hill_averages[category]} Optimized: {optimized_averages[category]}-> Better? {hill_averages[category] > optimized_averages[category]}")
+        print(f"{category}: Hill: {hill_averages[category]} Optimized: {optimized_averages[category]}")
     print(f"is Hill better? : {evaluateSquad(optimized_squad, hill_squad)}")
     
     hyp_team = ["Ben Simmons BKN - PG","Gordon Hayward CHA - SF","Kentavious Caldwell-Pope DEN - SG","Josh Giddey OKC - SG","Kevon Looney GSW - PF","Mitchell Robinson NYK - C",
@@ -208,7 +208,7 @@ def main():
     my_pick_avgs = averages(my_picks)
     print("Now we compare my picks to the OPTIMAL")
     for category in team_averages:
-        print(f"{category}: my Picks: {my_pick_avgs[category]} Hill: {hill_averages[category]} -> Better? {my_pick_avgs[category] > hill_averages[category]}")
+        print(f"{category}: my Picks: {my_pick_avgs[category]} Hill: {hill_averages[category]}")
     print(f"Are my Picks better Than Hill Squad? {evaluateSquad(hill_squad, my_picks)}")
 if __name__ == '__main__':
     main()
