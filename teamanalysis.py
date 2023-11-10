@@ -17,7 +17,7 @@ def hillClimb(players,num_restarts = 50, max_iterations = 10000, team_size = 15)
 
     best_squad = None
     best_score = float("-inf")
-    for _ in range(num_restarts):
+    for _ in range(num_restarts): 
         print(f"Start #{_ + 1}")
         cur_squad = randomStart(players, team_size)
         cur_score = sum(normalizedScore(cur_squad))
