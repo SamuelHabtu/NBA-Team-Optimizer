@@ -122,37 +122,49 @@ def normalizedScore(squad):
 
     stats = averages(squad)
     min_FG_percent = 0
-    max_FG_percent = 1
+    max_FG_percent = .75
     
     min_ThreePt_percent = 0
-    max_ThreePt_percent = 1
+    max_ThreePt_percent = .65
     
     min_REB = 0
-    max_REB = 8650  # Assuming this is the upper limit for rebounds 
+    max_REB = 4970.0  # Assuming this is the upper limit for rebounds 
     min_AST = 0
-    max_AST = 8320  # You'll need to determine the maximum possible value for AST based on your league settings
+    max_AST = 2849.0  # You'll need to determine the maximum possible value for AST based on your league settings
     min_STL = 0
-    max_STL = 1530  # You'll need to determine the maximum possible value for STL based on your league settings
+    max_STL = 853.8000000000001  # You'll need to determine the maximum possible value for STL based on your league settings
     min_BLK = 0
-    max_BLK = 1950  # You'll need to determine the maximum possible value for BLK based on your league settings
+    max_BLK = 621.0999999999999  # You'll need to determine the maximum possible value for BLK based on your league settings
     min_AT = 0
-    max_AT = 42  # You'll need to determine the maximum possible value for A/T based on your league settings
+    max_AT = 2.5145437779101742  # You'll need to determine the maximum possible value for A/T based on your league settings
     min_PF = 0  # You'll need to determine the minimum possible value for PF based on your league settings
-    max_PF = -2720
+    max_PF = -1958.2999999999997
     # Normalize each statistic, each stat is also weighted by 0.125
     normalized_stats = []
-    normalized_stats.append((stats["FG%"] - min_FG_percent) / (max_FG_percent - min_FG_percent)*0.125)
-    normalized_stats.append((stats["3PT%"] - min_ThreePt_percent) / (max_ThreePt_percent - min_ThreePt_percent)*0.125)
-    normalized_stats.append((stats["REB"] - min_REB) / (max_REB - min_REB)*0.125)
-    normalized_stats.append((stats["AST"] - min_AST) / (max_AST - min_AST)*0.125)
-    normalized_stats.append((stats["STL"] - min_STL) / (max_STL - min_STL)*0.125)
-    normalized_stats.append((stats["BLK"] - min_BLK) / (max_BLK - min_BLK)*0.125)
-    normalized_stats.append((stats["A/T"] - min_AT) / (max_AT - min_AT)*0.125)
-    normalized_stats.append(( max_PF - stats["PF"]) / (max_PF - min_PF)*0.125)
+    normalized_stats.append((stats["FG%"] - min_FG_percent) / (max_FG_percent - min_FG_percent)*(1/7))#0.125)
+    normalized_stats.append((stats["3PT%"] - min_ThreePt_percent) / (max_ThreePt_percent - min_ThreePt_percent)*(1/7))#0.125)
+    normalized_stats.append((stats["REB"] - min_REB) / (max_REB - min_REB)*(1/7))#0.125)
+    normalized_stats.append((stats["AST"] - min_AST) / (max_AST - min_AST)*(1/7))#0.125)
+    normalized_stats.append((stats["STL"] - min_STL) / (max_STL - min_STL)*(1/7))#0.125)
+    normalized_stats.append((stats["BLK"] - min_BLK) / (max_BLK - min_BLK)*(1/7))#0.125)
+    normalized_stats.append((stats["A/T"] - min_AT) / (max_AT - min_AT)*(1/7))#0.125)
+    normalized_stats.append(( max_PF - stats["PF"]) / (max_PF - min_PF)*0)#0.125)
     return normalized_stats
 
-def main():
-    
+def matchUp(opponent, squad):
+
+    other_team = extractPlayers(opponent)
+    enemy_avgs = averages(other_team)
+    squad_avgs = averages(squad)
+    print(f"Matchup vs {opponent[:-2]}")
+    for category in enemy_avgs:
+        print(f"{category}: My Squad: {squad_avgs[category]} Enemy Squad: {enemy_avgs[category]}")
+    score = evaluateSquad(other_team, squad)
+    print(f"is My Squad better? : {score > 0} Score was: {score}")
+    return score
+
+
+def extractPlayers(filename = "freeagents.csv"):
     players = []
     with open('freeagents.csv', newline = '') as csvfile:
         csvdata = csv.reader(csvfile, delimiter=',', quotechar='|')
@@ -177,11 +189,14 @@ def main():
             temp_player["STL"] = float(player_info[11 + size_delta])
             temp_player["BLK"] = float(player_info[12 + size_delta])
             temp_player["A/T"] = float(player_info[13 + size_delta])
-
             temp_player["TO"] = temp_player["AST"]/temp_player["A/T"]
             temp_player["PF"] = float(player_info[14 + size_delta])
             players.append(temp_player)
+    return players
 
+def main():
+    
+    players = extractPlayers()
 
     team_averages = averages(players[:15])
     optimized_squad = optimize(players, teamsize=15)
@@ -198,6 +213,11 @@ def main():
     for category in team_averages:
         print(f"{category}: Hill: {hill_averages[category]} Optimized: {optimized_averages[category]}")
     print(f"is Hill better? : {evaluateSquad(optimized_squad, hill_squad)}")
+    print("-----------------------------------------------------------------------------------------------")
+    print(f"Now let's do some theoretical matchups:")
+    for opp in ["Slim reaper.csv", "Jimmy's Buckets", "Dunk Daddies"]:
 
+        matchUp(opp, hill_squad)
+    
 if __name__ == '__main__':
     main()
