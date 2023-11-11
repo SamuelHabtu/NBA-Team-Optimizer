@@ -13,7 +13,7 @@ def evaluateSquad(cur_squad, potential_squad):
         win_counter += battle(cur_avgs, avgs, category)
     return win_counter
 
-def hillClimb(players,num_restarts = 50, max_iterations = 10000, team_size = 15):
+def hillClimb(players,num_restarts = 200, max_iterations = 15000, team_size = 15):
 
     best_squad = None
     best_score = float("-inf")
@@ -122,33 +122,33 @@ def normalizedScore(squad):
 
     stats = averages(squad)
     min_FG_percent = 0
-    max_FG_percent = .75
+    max_FG_percent = 1
     
     min_ThreePt_percent = 0
-    max_ThreePt_percent = .65
+    max_ThreePt_percent = 1
     
     min_REB = 0
     max_REB = 4970.0  # Assuming this is the upper limit for rebounds 
     min_AST = 0
     max_AST = 2849.0  # You'll need to determine the maximum possible value for AST based on your league settings
     min_STL = 0
-    max_STL = 853.8000000000001  # You'll need to determine the maximum possible value for STL based on your league settings
+    max_STL = 920  # You'll need to determine the maximum possible value for STL based on your league settings
     min_BLK = 0
-    max_BLK = 621.0999999999999  # You'll need to determine the maximum possible value for BLK based on your league settings
+    max_BLK = 3371  # You'll need to determine the maximum possible value for BLK based on your league settings
     min_AT = 0
     max_AT = 2.5145437779101742  # You'll need to determine the maximum possible value for A/T based on your league settings
     min_PF = 0  # You'll need to determine the minimum possible value for PF based on your league settings
     max_PF = -1958.2999999999997
     # Normalize each statistic, each stat is also weighted by 0.125
     normalized_stats = []
-    normalized_stats.append((stats["FG%"] - min_FG_percent) / (max_FG_percent - min_FG_percent)*(1/7))#0.125)
-    normalized_stats.append((stats["3PT%"] - min_ThreePt_percent) / (max_ThreePt_percent - min_ThreePt_percent)*(1/7))#0.125)
-    normalized_stats.append((stats["REB"] - min_REB) / (max_REB - min_REB)*(1/7))#0.125)
-    normalized_stats.append((stats["AST"] - min_AST) / (max_AST - min_AST)*(1/7))#0.125)
-    normalized_stats.append((stats["STL"] - min_STL) / (max_STL - min_STL)*(1/7))#0.125)
-    normalized_stats.append((stats["BLK"] - min_BLK) / (max_BLK - min_BLK)*(1/7))#0.125)
-    normalized_stats.append((stats["A/T"] - min_AT) / (max_AT - min_AT)*(1/7))#0.125)
-    normalized_stats.append(( max_PF - stats["PF"]) / (max_PF - min_PF)*0)#0.125)
+    normalized_stats.append((stats["FG%"] - min_FG_percent) / (max_FG_percent - min_FG_percent)*0.125)
+    normalized_stats.append((stats["3PT%"] - min_ThreePt_percent) / (max_ThreePt_percent - min_ThreePt_percent)*0.125)
+    normalized_stats.append((stats["REB"] - min_REB) / (max_REB - min_REB)*0.125)
+    normalized_stats.append((stats["AST"] - min_AST) / (max_AST - min_AST)*0.125)
+    normalized_stats.append((stats["STL"] - min_STL) / (max_STL - min_STL)*0.125)
+    normalized_stats.append((stats["BLK"] - min_BLK) / (max_BLK - min_BLK)*0.125)
+    normalized_stats.append((stats["A/T"] - min_AT) / (max_AT - min_AT)*0.125)
+    normalized_stats.append(( max_PF - stats["PF"]) / (max_PF - min_PF)*0.125)
     return normalized_stats
 
 def matchUp(opponent, squad):
@@ -194,10 +194,20 @@ def extractPlayers(filename = "freeagents.csv"):
             players.append(temp_player)
     return players
 
+def freeAgents(cur_squad):
+
+    freeAgents = extractPlayers("freeagents.csv")
+    #add our players to the free agent pool
+    for player in cur_squad:
+        freeAgents.append(dict(player))
+    hill_squad = hillClimb(freeAgents)
+    matchUp(hill_squad, cur_squad)
+
+
 def main():
     
-    players = extractPlayers()
-
+    players = extractPlayers("currentroster.csv")
+    freeAgents(players)
     team_averages = averages(players[:15])
     optimized_squad = optimize(players, teamsize=15)
     hill_squad =   hillClimb(players, team_size=15)

@@ -24,7 +24,7 @@ def evaluateSquad(squad):
         score += squad[player]["FFPG"]
     return score * salaryCheck(squad)
 
-def hillClimb(players,num_restarts = 200, max_iterations = 20000):
+def hillClimb(players,num_restarts = 200, max_iterations = 15000):
 
     best_squad = None
     best_score = float("-inf")
