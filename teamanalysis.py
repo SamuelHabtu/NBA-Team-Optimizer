@@ -13,12 +13,12 @@ def evaluateSquad(cur_squad, potential_squad):
         win_counter += battle(cur_avgs, avgs, category)
     return win_counter
 
-def hillClimb(players,num_restarts = 200, max_iterations = 15000, team_size = 15):
+def hillClimb(players,num_restarts = 5000, max_iterations = 100, team_size = 15):
 
     best_squad = None
     best_score = float("-inf")
     for _ in range(num_restarts): 
-        print(f"Start #{_ + 1}")
+        #print(f"Start #{_ + 1}")
         cur_squad = randomStart(players, team_size)
         cur_score = sum(normalizedScore(cur_squad))
         for _ in range(max_iterations):
@@ -80,16 +80,22 @@ def averages(team):
 def optimize(players, teamsize = 15):
 
     current_squad = players[:teamsize]
-    delta_contribution = 0
+    print(len(list(itertools.combinations(players, 15))))
+
+    for temp_squad in itertools.combinations(players, 15):
+        if normalizedScore(current_squad) < normalizedScore(temp_squad):
+            current_squad = temp_squad[:]
+    '''
     for i in range(len(current_squad)):
-        for j in range(teamsize, len(players)):
+        for j in range(len(players)):
             if players[j] not in current_squad:
                 temp_squad = []
                 temp_squad = current_squad[:i]
                 temp_squad.append(players[j])
                 temp_squad += current_squad[i + 1:]
-                if headToHead(current_squad, temp_squad):
+                if normalizedScore(current_squad) < normalizedScore(temp_squad):
                     current_squad = temp_squad
+    '''
     return current_squad
 
 def optimize_greedy(players, teamsize=15):
@@ -106,39 +112,36 @@ def headToHead(current_squad, temp_squad):
     win_counter = 0
     for category in cur_avgs:
         win_counter += battle(cur_avgs, temp_avgs, category)
-    if win_counter > 0:
-        return True
+    if win_counter >= 6:
+        return True 
     return False
 
 
 def battle(current, temp, category):
-    if temp[category] > current[category]:
-        return 1
-    elif temp[category] < current[category]:
-        return -1
-    return 0
+    return temp[category] > current[category]
+
 
 def normalizedScore(squad):
 
     stats = averages(squad)
     min_FG_percent = 0
-    max_FG_percent = 1
+    max_FG_percent = 0.55
     
     min_ThreePt_percent = 0
-    max_ThreePt_percent = 1
+    max_ThreePt_percent = 0.39
     
     min_REB = 0
-    max_REB = 4970.0  # Assuming this is the upper limit for rebounds 
+    max_REB = 6500  # Assuming this is the upper limit for rebounds 
     min_AST = 0
-    max_AST = 2849.0  # You'll need to determine the maximum possible value for AST based on your league settings
+    max_AST = 3800  # You'll need to determine the maximum possible value for AST based on your league settings
     min_STL = 0
-    max_STL = 920  # You'll need to determine the maximum possible value for STL based on your league settings
+    max_STL = 1400.0  # You'll need to determine the maximum possible value for STL based on your league settings
     min_BLK = 0
-    max_BLK = 3371  # You'll need to determine the maximum possible value for BLK based on your league settings
+    max_BLK = 831.5999999999999  # You'll need to determine the maximum possible value for BLK based on your league settings
     min_AT = 0
-    max_AT = 2.5145437779101742  # You'll need to determine the maximum possible value for A/T based on your league settings
+    max_AT = 2.41  # You'll need to determine the maximum possible value for A/T based on your league settings
     min_PF = 0  # You'll need to determine the minimum possible value for PF based on your league settings
-    max_PF = -1958.2999999999997
+    max_PF = -1900
     # Normalize each statistic, each stat is also weighted by 0.125
     normalized_stats = []
     normalized_stats.append((stats["FG%"] - min_FG_percent) / (max_FG_percent - min_FG_percent)*0.125)
@@ -149,24 +152,27 @@ def normalizedScore(squad):
     normalized_stats.append((stats["BLK"] - min_BLK) / (max_BLK - min_BLK)*0.125)
     normalized_stats.append((stats["A/T"] - min_AT) / (max_AT - min_AT)*0.125)
     normalized_stats.append(( max_PF - stats["PF"]) / (max_PF - min_PF)*0.125)
+    #we hardcap everything at 1
+    for i in range(len(normalized_stats)):
+        normalized_stats[i] = min(normalized_stats[i],1.0)
     return normalized_stats
 
 def matchUp(opponent, squad):
 
-    other_team = extractPlayers(opponent)
-    enemy_avgs = averages(other_team)
+    other_team = optimize(extractPlayers(opponent))
+    enemy_avgs = averages((other_team))
     squad_avgs = averages(squad)
     print(f"Matchup vs {opponent[:-2]}")
     for category in enemy_avgs:
         print(f"{category}: My Squad: {squad_avgs[category]} Enemy Squad: {enemy_avgs[category]}")
     score = evaluateSquad(other_team, squad)
-    print(f"is My Squad better? : {score > 0} Score was: {score}")
+    print(f"is My Squad better? : {score > 6} , Expected Score of: {score}-{12- score}")
     return score
 
 
 def extractPlayers(filename = "freeagents.csv"):
     players = []
-    with open('freeagents.csv', newline = '') as csvfile:
+    with open(filename, newline = '') as csvfile:
         csvdata = csv.reader(csvfile, delimiter=',', quotechar='|')
         
         for player_info in csvdata:
@@ -196,38 +202,32 @@ def extractPlayers(filename = "freeagents.csv"):
 
 def freeAgents(cur_squad):
 
-    freeAgents = extractPlayers("freeagents.csv")
+    freeAgents = extractPlayers()
     #add our players to the free agent pool
     for player in cur_squad:
         freeAgents.append(dict(player))
     hill_squad = hillClimb(freeAgents)
-    matchUp(hill_squad, cur_squad)
+    cur_avgs = averages((cur_squad))
+    optimized_averages = averages(hill_squad)
+    for category in cur_avgs:
+        print(f"{category}: Current Roster: {cur_avgs[category]} Optimized: {optimized_averages[category]}")
+    print(f"Here is our original Squad")
+    for player in cur_squad:
+        print(f"{player["Name"]}")
+    print(f"Here is our Optimized Squad")
+    for player in hill_squad:
+        print(f"{player["Name"]}")
 
-
+    return hill_squad
 def main():
     
     players = extractPlayers("currentroster.csv")
-    freeAgents(players)
-    team_averages = averages(players[:15])
-    optimized_squad = optimize(players, teamsize=15)
-    hill_squad =   hillClimb(players, team_size=15)
-    optimized_averages = averages(optimized_squad)
-    hill_averages = averages(hill_squad)
-    print("Optimized squad:")
-    for player in optimized_squad:
-        print(f"{player['Name']}")
-    print("HILL SQUAD:")
-    for player in hill_squad:
-        print(f"{player['Name']}")
-    print("Now let's compare the Hill vs brute force averages!")
-    for category in team_averages:
-        print(f"{category}: Hill: {hill_averages[category]} Optimized: {optimized_averages[category]}")
-    print(f"is Hill better? : {evaluateSquad(optimized_squad, hill_squad)}")
+    roster = freeAgents(players)
+    #roster = optimize(players)
     print("-----------------------------------------------------------------------------------------------")
     print(f"Now let's do some theoretical matchups:")
-    for opp in ["Slim reaper.csv", "Jimmy's Buckets", "Dunk Daddies"]:
+    for opp in ["Slim reaper.csv", "Jimmy's Buckets.csv", "Dunk Daddies.csv"]:
 
-        matchUp(opp, hill_squad)
-    
+        matchUp(opp, roster)
 if __name__ == '__main__':
     main()
