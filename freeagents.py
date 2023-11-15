@@ -12,9 +12,8 @@ def extractPlayerInfo(player_str):
     else:
         return None, None
     
-def match(opponent, squad):
 
-
+        
 
 def main():
     players = []

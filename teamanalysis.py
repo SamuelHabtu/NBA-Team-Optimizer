@@ -15,8 +15,14 @@ def evaluateSquad(cur_squad, potential_squad):
         win_counter += battle(cur_avgs, avgs, category)
     return win_counter
 
+def hybridOptimization(players, population_size = 12000, generations = 50,mutation_rate = 0.1, crossover_rate = 0.07, hill_climb_restarts=12, hill_climb_iterations=60000, num_processes=4):
+    population = initializePopulation(players, population_size*10, 20)
+    population = [bruteForce(solution, 15) for solution in population]
+    best_squad = max(population, key=lambda squad: sum(normalizedScore(squad)))
+    
+    return best_squad
 
-def geneticOptimization(players, population_size = 2400, generations = 25000, mutation_rate = 0.1, crossover_rate = 0.07):
+def geneticOptimization(players, population_size =  12000, generations = 50, mutation_rate = 0.1, crossover_rate = 0.07):
 
     population = initializePopulation(players)
     best_fitness = float("-inf")
@@ -77,7 +83,7 @@ def mutate(players, individual):
     return individual
 
 
-def hillClimb(players, num_restarts=1200, max_iterations=8000, team_size=15, num_processes=4):
+def hillClimb(players, num_restarts=12, max_iterations=60000, team_size=15, num_processes=4):
     print(f"searching through: {len(players)} players, with {num_restarts} restarts and {max_iterations} iterations split up into {num_processes} threads")
     pool = multiprocessing.Pool(processes=num_processes)
     results = pool.starmap(hillClimbSingleRun, [(players, team_size, max_iterations) for _ in range(num_restarts)])
@@ -86,7 +92,12 @@ def hillClimb(players, num_restarts=1200, max_iterations=8000, team_size=15, num
     best_squad = max(results, key=lambda squad: sum(normalizedScore(squad)))    
     return best_squad
 
+n_runs = 1
+
 def hillClimbSingleRun(players, team_size, max_iterations):
+    global n_runs
+    print(f"run #{n_runs}")
+    n_runs += 1
     cur_squad = randomStart(players, team_size)
     cur_score = sum(normalizedScore(cur_squad))
     for _ in range(max_iterations):
@@ -214,23 +225,23 @@ def normalizedScore(squad):
 
     stats = averages(squad)
     min_FG_percent = 0
-    max_FG_percent =  0.5018210197710717
+    max_FG_percent = 0.5078217121295495
     
     min_ThreePt_percent = 0
-    max_ThreePt_percent = 0.3761388286334057
+    max_ThreePt_percent =  0.37893743257820933
     
     min_REB = 0
-    max_REB = 386.5 # Assuming this is the upper limit for rebounds 
+    max_REB = 7553.0# Assuming this is the upper limit for rebounds 
     min_AST = 0
-    max_AST = 232.60000000000002  # You'll need to determine the maximum possible value for AST based on your league settings
+    max_AST = 5033.8  # You'll need to determine the maximum possible value for AST based on your league settings
     min_STL = 0
-    max_STL = 58.7  # You'll need to determine the maximum possible value for STL based on your league settings
+    max_STL = 1208.0 # You'll need to determine the maximum possible value for STL based on your league settings
     min_BLK = 0
-    max_BLK =  39.7 # You'll need to determine the maximum possible value for BLK based on your league settings
+    max_BLK = 937.8000000000001 # You'll need to determine the maximum possible value for BLK based on your league settings
     min_AT = 0
-    max_AT = 2.09027780351422 # You'll need to determine the maximum possible value for A/T based on your league settings
+    max_AT = 2.1169155231733954 # You'll need to determine the maximum possible value for A/T based on your league settings
     min_PF = 0  # You'll need to determine the minimum possible value for PF based on your league settings
-    max_PF = -136.10000000000002
+    max_PF = -2240.5
     # Normalize each statistic, each stat is also weighted by 0.125
     normalized_stats = []
     normalized_stats.append((stats["FG%"] - min_FG_percent) / (max_FG_percent - min_FG_percent)*0.125)
@@ -243,10 +254,10 @@ def normalizedScore(squad):
     normalized_stats.append(( max_PF - stats["PF"]) / (max_PF - min_PF)*0.125)
     #we hardcap everything at 1
     for i in range(len(normalized_stats)):
-        normalized_stats[i] = min(normalized_stats[i],99999)
+        normalized_stats[i] = min(normalized_stats[i],0.14375)
     return normalized_stats
 
-def matchUp(opponent, squad):
+def matchUp(opponent, squad): 
 
     other_team = (extractPlayers(opponent))
     enemy_avgs = averages((other_team))
@@ -302,7 +313,7 @@ def greedyAlgo(players, team_size = 15):
 def freeAgents():
 
     freeAgents = extractPlayers()
-    hill_squad = geneticOptimization(freeAgents)
+    hill_squad = hybridOptimization(freeAgents)
     print("---------------------------------------------------------------------")
     print(f"Here is our Optimized Squad")
     for player in hill_squad:
@@ -314,8 +325,7 @@ def main():
     
     roster = extractPlayers("weeklyroster.csv")
     roster = bruteForce(roster)
-    gene_squad = freeAgents()
-    hill_squad = hillClimb(extractPlayers("weeklyroster.csv"))
+    hill_squad = freeAgents()
     #roster = bruteForce(players)
     print("-----------------------------------------------------------------------------------------------")
     print(f"Now let's do some theoretical matchups:")
@@ -328,10 +338,10 @@ def main():
     roster_avg = averages(roster)
     for category in hill_avg:
         print(f"Category: {category } hill Squad: {hill_avg[category]} Brute force: {roster_avg[category]}")
-    print(f"Hill squad Score{sum(normalizedScore(hill_squad))} Brute force Score: {sum(normalizedScore(roster))}")
-    print(f"Heres the gene squad:")
-    for player in gene_squad:
-        print(f"{player['Name']}")
-    matchUp("Free throw merchants.csv", gene_squad)
+    print(f"Hill squad Score: {sum(normalizedScore(hill_squad))} Brute force Score: {sum(normalizedScore(roster))}")
+    print("Hill SQUAD:")
+    for player in hill_squad:
+        print(player['Name'])
+
 if __name__ == '__main__':
     main()
