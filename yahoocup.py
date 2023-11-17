@@ -1,6 +1,8 @@
 import csv
 import random
+import multiprocessing
 
+n_runs = 1
 def randomStart(players):
     chosen_players = dict({})
     for position in players:
@@ -24,27 +26,39 @@ def evaluateSquad(squad):
         score += squad[player]["FFPG"]
     return score * salaryCheck(squad)
 
-def hillClimb(players,num_restarts = 200, max_iterations = 15000):
-
-    best_squad = None
-    best_score = float("-inf")
-    for _ in range(num_restarts): 
-        print(f"Start #{_ + 1}")
-        cur_squad = randomStart(players)
-        cur_score = evaluateSquad(cur_squad)
-        for _ in range(max_iterations):
-            neighbour_squad = dict(cur_squad) #make a shallow copy
-            position_to_swap = random.choice(list(cur_squad.keys()))
-            new_player = random.choice([p for p in players[position_to_swap] if p not in cur_squad.values()])  # Exclude players already in squad
-            neighbour_squad[position_to_swap] = new_player
-            neighbour_score = evaluateSquad(neighbour_squad)
-            if neighbour_score > cur_score:
-                cur_squad = dict(neighbour_squad)
-                cur_score = neighbour_score
-                if cur_score > best_score:
-                    best_squad = cur_squad
-                    best_score = cur_score
+def hillClimb(players,num_restarts = 6420, max_iterations = 500, num_processes = 4):
+    print(f"searching through: {len(players)} players, with {num_restarts} restarts and {max_iterations} iterations split up into {num_processes} threads")
+    pool = multiprocessing.Pool(processes=num_processes)
+    results = pool.starmap(hillClimbSingleRun, [(players,max_iterations) for _ in range(num_restarts)])
+    pool.close()
+    pool.join()
+    best_squad = max(results, key=lambda squad: evaluateSquad(squad))    
     return best_squad
+
+def hillClimbSingleRun(players, max_iterations):
+
+    global n_runs
+
+    cur_squad = randomStart(players)
+    cur_score = evaluateSquad(cur_squad)
+    best_squad = cur_squad
+    best_score = cur_score
+    for _ in range(max_iterations):
+        neighbour_squad = dict(cur_squad) #make a shallow copy
+        position_to_swap = random.choice(list(cur_squad.keys()))
+        new_player = random.choice([p for p in players[position_to_swap] if p not in cur_squad.values()])  # Exclude players already in squad
+        neighbour_squad[position_to_swap] = new_player
+        neighbour_score = evaluateSquad(neighbour_squad)
+        if neighbour_score > cur_score:
+            cur_squad = dict(neighbour_squad)
+            cur_score = neighbour_score
+            if cur_score > best_score:
+                best_squad = cur_squad
+                best_score = cur_score
+    print(f"This thread is on run #{(n_runs)}")
+    n_runs += 1
+    return best_squad
+
 
 def extractPlayers(filenames = ["Yahoo Cup PGs.csv", "Yahoo Cup SGs.csv", "Yahoo Cup SFs.csv", "Yahoo Cup PFs.csv", "Yahoo Cup Cs.csv"]):
     players = dict({})

@@ -15,11 +15,13 @@ def evaluateSquad(cur_squad, potential_squad):
         win_counter += battle(cur_avgs, avgs, category)
     return win_counter
 
-def geneticOptimization(players, population_size=324, generations=1600, mutation_rate=0.5, crossover_rate=0.5, elitism_rate=0.05):
+def geneticOptimization(players, population_size=648, generations=1600, mutation_rate=0.5, crossover_rate=0.5, elitism_rate=0.05):
 
-    best_individual = None
+    roster = extractPlayers("currentroster.csv")
+
+    best_individual = bruteForce(roster)
     population = initializePopulation(players)
-    best_fitness = float("-inf")
+    best_fitness = sum(normalizedScore(best_individual))
     for generation in range(generations):
         fitness_scores = [sum(normalizedScore(individual)) for individual in population]
         selected_parents = [tournamentSelection(population) for _ in range(population_size)]
@@ -41,15 +43,15 @@ def geneticOptimization(players, population_size=324, generations=1600, mutation
             else:
                 if random.uniform(0, 1) < mutation_rate:
                     new_population.extend([mutate(players, parent_one), mutate(players, parent_two)])
-
+                else:
+                    new_population.extend([parent_one, parent_two])
         
         current_best_fitness = sum(normalizedScore(sorted_population[0]))
         if current_best_fitness > best_fitness:
             print(f"Changing up best individual because: {current_best_fitness} > {best_fitness}")
             best_fitness = current_best_fitness
             best_individual = sorted_population[0].copy()
-        else:
-            new_population.append(best_individual)
+        new_population.extend([best_individual])
         population =  new_population[:]
         if(generation + 1)%100 == 0 or generation == 0:
             print(f"Generation: {generation + 1}")
@@ -94,7 +96,7 @@ def mutate(players, individual):
     return individual
 
 
-def hillClimb(players, num_restarts=642, max_iterations=500, team_size=15, num_processes=4):
+def hillClimb(players, num_restarts=6420, max_iterations=400, team_size=15, num_processes=4):
     print(f"searching through: {len(players)} players, with {num_restarts} restarts and {max_iterations} iterations split up into {num_processes} threads")
     pool = multiprocessing.Pool(processes=num_processes)
     results = pool.starmap(hillClimbSingleRun, [(players, team_size, max_iterations) for _ in range(num_restarts)])
@@ -338,6 +340,10 @@ def main():
     
     roster = extractPlayers("currentroster.csv")  
     roster = bruteForce(roster)
+    print("Optimized version of our roster")
+    for player in roster:
+        print(player['Name'])
+    print("-"*30)
     hill_squad = freeAgents()
     #roster = bruteForce(players)
     print("-----------------------------------------------------------------------------------------------")
