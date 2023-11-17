@@ -15,41 +15,51 @@ def evaluateSquad(cur_squad, potential_squad):
         win_counter += battle(cur_avgs, avgs, category)
     return win_counter
 
-def geneticOptimization(players, population_size = 30, generations = 1000, mutation_rate = 0.005, crossover_rate = 0.8):
+def geneticOptimization(players, population_size=324, generations=1600, mutation_rate=0.5, crossover_rate=0.5, elitism_rate=0.05):
 
+    best_individual = None
     population = initializePopulation(players)
     best_fitness = float("-inf")
     for generation in range(generations):
-
         fitness_scores = [sum(normalizedScore(individual)) for individual in population]
         selected_parents = [tournamentSelection(population) for _ in range(population_size)]
         sorted_population = [x for _, x in sorted(zip(fitness_scores, population), key=lambda pair: pair[0], reverse=True)]
-        
-        new_population = []
-        for i in range(0, population_size,2):
+        num_elites = int(elitism_rate * population_size)
+        #always yoink the best lads
+        new_population = sorted_population[:num_elites]
+
+        for i in range(0, population_size, 2):
             parent_one = selected_parents[i]
             parent_two = selected_parents[i + 1]
             if random.uniform(0, 1) < crossover_rate:
-                child_one  = crossOver(parent_one, parent_two)
+                child_one = crossOver(parent_one, parent_two)
                 child_two = crossOver(parent_one, parent_two)
-                if random.uniform(0,1) < mutation_rate:
+                if random.uniform(0, 1) < mutation_rate:
                     child_one = mutate(players, child_one)
                     child_two = mutate(players, child_two)
-                new_population = new_population + [child_one, child_two]
+                new_population.extend([child_one, child_two])
             else:
                 if random.uniform(0, 1) < mutation_rate:
-                    new_population = new_population + [mutate(players, parent_one), mutate(players, parent_two)]
-        population = new_population[:]
-        current_best_fitness = max(fitness_scores)
-        new_population.append(sorted_population[0])
-        if(not (generation + 1) % 100):
-            print(f"Generation #{generation + 1}")
-            print(f"best of this generation: {current_best_fitness}")
-        if current_best_fitness > best_fitness:
-            best_fitness = current_best_fitness
-            best_individual = sorted_population[0]
+                    new_population.extend([mutate(players, parent_one), mutate(players, parent_two)])
+
         
-    return best_individual
+        current_best_fitness = sum(normalizedScore(sorted_population[0]))
+        if current_best_fitness > best_fitness:
+            print(f"Changing up best individual because: {current_best_fitness} > {best_fitness}")
+            best_fitness = current_best_fitness
+            best_individual = sorted_population[0].copy()
+        else:
+            new_population.append(best_individual)
+        population =  new_population[:]
+        if(generation + 1)%100 == 0 or generation == 0:
+            print(f"Generation: {generation + 1}")
+            print(f"best of this generation: {current_best_fitness} VS {best_fitness}")
+    print("getting the values for sorted population[0], population[0] and best_individual")
+    for score in [sum(normalizedScore(sorted_population[0])), sum(normalizedScore(population[0])), sum(normalizedScore(best_individual))]:
+        print(score)
+            
+
+    return population[0]
 
 def initializePopulation(players, population_size = 100, team_size = 15):
     #create teams equal to the number of populations
@@ -84,7 +94,7 @@ def mutate(players, individual):
     return individual
 
 
-def hillClimb(players, num_restarts=642, max_iterations=500, team_size=15, num_processes=1):
+def hillClimb(players, num_restarts=642, max_iterations=500, team_size=15, num_processes=4):
     print(f"searching through: {len(players)} players, with {num_restarts} restarts and {max_iterations} iterations split up into {num_processes} threads")
     pool = multiprocessing.Pool(processes=num_processes)
     results = pool.starmap(hillClimbSingleRun, [(players, team_size, max_iterations) for _ in range(num_restarts)])
@@ -204,7 +214,7 @@ def bruteForce(players, teamsize=15):
         if score > best_score:
             best_squad = squad[:]
             best_score = score
-    return best_squad
+    return list(best_squad)
 
 def headToHead(current_squad, temp_squad):
     #returns ture if a team is better than the other
@@ -254,10 +264,10 @@ def normalizedScore(squad):
     normalized_stats.append((stats["A/T"] - min_AT) / (max_AT - min_AT)*0.125)
     normalized_stats.append(( max_PF - stats["PF"]) / (max_PF - min_PF)*0.125)
     #we hardcap everything at 1
-    '''
+    
     for i in range(len(normalized_stats)):
-        normalized_stats[i] = min(normalized_stats[i],1)
-    '''
+        normalized_stats[i] = min(normalized_stats[i],0.15)
+    
     return normalized_stats
 
 def matchUp(opponent, squad): 
@@ -326,7 +336,7 @@ def freeAgents():
 
 def main():
     
-    roster = extractPlayers("currentroster.csv")
+    roster = extractPlayers("currentroster.csv")  
     roster = bruteForce(roster)
     hill_squad = freeAgents()
     #roster = bruteForce(players)
