@@ -15,7 +15,7 @@ def evaluateSquad(cur_squad, potential_squad):
         win_counter += battle(cur_avgs, avgs, category)
     return win_counter
 
-def geneticOptimization(players, population_size=648, generations=16000, mutation_rate=0.5, crossover_rate=0.5, elitism_rate=0.05):
+def geneticOptimization(players, population_size=1296, generations=16000, mutation_rate=0.95, crossover_rate=0.07, elitism_rate=0.05):
 
     best_individual = None
     population = initializePopulation(players)
