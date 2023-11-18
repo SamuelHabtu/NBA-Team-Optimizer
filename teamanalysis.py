@@ -15,35 +15,37 @@ def evaluateSquad(cur_squad, potential_squad):
         win_counter += battle(cur_avgs, avgs, category)
     return win_counter
 
-def geneticOptimization(players, population_size=50, generations=16000, mutation_rate=0.6, crossover_rate=0.5, elitism_rate=0.1):
+def geneticOptimization(players, population_size=1296, generations=16000, mutation_rate=0.95, crossover_rate=0.07, elitism_rate=0.05):
 
-
-    best_individual = []
+    best_individual = None
     population = initializePopulation(players)
     best_fitness = float("-inf")
+    fitness_scores = []
+    selected_parents = []
+    num_elites = int(elitism_rate * population_size)
+
     for generation in range(generations):
         fitness_scores = [sum(normalizedScore(individual)) for individual in population]
         selected_parents = [tournamentSelection(population) for _ in range(population_size)]
         sorted_population = [x for _, x in sorted(zip(fitness_scores, population), key=lambda pair: pair[0], reverse=True)]
-        num_elites = int(elitism_rate * population_size)
         #always yoink the best lads
-        new_population = sorted_population[:num_elites]
+        new_population = sorted_population[:num_elites].copy()
 
         for i in range(0, population_size, 2):
-            parent_one = selected_parents[i]
-            parent_two = selected_parents[i + 1]
+            parent_one = selected_parents[i].copy()
+            parent_two = selected_parents[i + 1].copy()
             if random.uniform(0, 1) < crossover_rate:
-                child_one = crossOver(parent_one, parent_two)
-                child_two = crossOver(parent_one, parent_two)
+                child_one = crossOver(parent_one, parent_two).copy()
+                child_two = crossOver(parent_one, parent_two).copy()
                 if random.uniform(0, 1) < mutation_rate:
-                    child_one = mutate(players, child_one)
-                    child_two = mutate(players, child_two)
-                new_population.extend([child_one, child_two])
+                    child_one = mutate(players, child_one).copy()
+                    child_two = mutate(players, child_two).copy()
+                new_population.extend([child_one.copy(), child_two.copy()])
             else:
                 if random.uniform(0, 1) < mutation_rate:
                     new_population.extend([mutate(players, parent_one), mutate(players, parent_two)])
                 else:
-                    new_population.extend([parent_one, parent_two])
+                    new_population.extend([parent_one.copy(), parent_two.copy()])
         
         current_best_fitness = sum(normalizedScore(sorted_population[0]))
         if current_best_fitness > best_fitness:
@@ -54,6 +56,7 @@ def geneticOptimization(players, population_size=50, generations=16000, mutation
             print("------------------------------------------------------------")
             best_fitness = current_best_fitness
             best_individual = sorted_population[0].copy()
+        #add the best individual to the next generation
         new_population.extend([best_individual])
         population =  new_population[:]
         if(generation + 1)%100 == 0 or generation == 0:
@@ -64,7 +67,7 @@ def geneticOptimization(players, population_size=50, generations=16000, mutation
         print(score)
             
 
-    return population[0]
+    return new_population[0]
 
 def initializePopulation(players, population_size = 100, team_size = 15):
     #create teams equal to the number of populations
@@ -240,23 +243,23 @@ def battle(current, temp, category):
 def normalizedScore(squad):
 
     stats = averages(squad)
-    min_FG_percent = 0
-    max_FG_percent = 0.6
+    min_FG_percent = 0.465
+    max_FG_percent = 0.5078217121295495
     
-    min_ThreePt_percent = 0
-    max_ThreePt_percent =  0.4
-    
-    min_REB = 0
+    min_ThreePt_percent =  0.35154746038797574
+    max_ThreePt_percent =  0.37893743257820933
+
+    min_REB = 5840.6
     max_REB = 7553.0# Assuming this is the upper limit for rebounds 
-    min_AST = 0
+    min_AST = 3562.4
     max_AST = 5033.8  # You'll need to determine the maximum possible value for AST based on your league settings
-    min_STL = 0
-    max_STL = 948.9000000000001 # You'll need to determine the maximum possible value for STL based on your league settings
-    min_BLK = 0
+    min_STL = 930.3999999999999
+    max_STL = 1208.0# You'll need to determine the maximum possible value for STL based on your league settings
+    min_BLK = 658.2000000000003
     max_BLK = 937.8 # You'll need to determine the maximum possible value for BLK based on your league settings
-    min_AT = 0
+    min_AT = 1.6810134314497802
     max_AT = 2.1169155231733954 # You'll need to determine the maximum possible value for A/T based on your league settings
-    min_PF = 0  # You'll need to determine the minimum possible value for PF based on your league settings
+    min_PF = -2944.9  # You'll need to determine the minimum possible value for PF based on your league settings
     max_PF = -2240.5
     # Normalize each statistic, each stat is also weighted by 0.125
     normalized_stats = []
