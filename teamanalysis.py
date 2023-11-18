@@ -15,13 +15,12 @@ def evaluateSquad(cur_squad, potential_squad):
         win_counter += battle(cur_avgs, avgs, category)
     return win_counter
 
-def geneticOptimization(players, population_size=648, generations=1600, mutation_rate=0.5, crossover_rate=0.5, elitism_rate=0.05):
+def geneticOptimization(players, population_size=50, generations=16000, mutation_rate=0.6, crossover_rate=0.5, elitism_rate=0.1):
 
-    roster = extractPlayers("currentroster.csv")
 
-    best_individual = bruteForce(roster)
+    best_individual = []
     population = initializePopulation(players)
-    best_fitness = sum(normalizedScore(best_individual))
+    best_fitness = float("-inf")
     for generation in range(generations):
         fitness_scores = [sum(normalizedScore(individual)) for individual in population]
         selected_parents = [tournamentSelection(population) for _ in range(population_size)]
@@ -49,6 +48,10 @@ def geneticOptimization(players, population_size=648, generations=1600, mutation
         current_best_fitness = sum(normalizedScore(sorted_population[0]))
         if current_best_fitness > best_fitness:
             print(f"Changing up best individual because: {current_best_fitness} > {best_fitness}")
+            print(f"new best team with fitness: {current_best_fitness}")
+            for player in sorted_population[0]:
+                print(player['Name'])
+            print("------------------------------------------------------------")
             best_fitness = current_best_fitness
             best_individual = sorted_population[0].copy()
         new_population.extend([best_individual])
