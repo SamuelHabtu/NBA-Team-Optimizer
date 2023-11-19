@@ -15,7 +15,7 @@ def evaluateSquad(cur_squad, potential_squad):
         win_counter += battle(cur_avgs, avgs, category)
     return win_counter
 
-def geneticOptimization(players, population_size=6500, generations=200, mutation_rate=0.95, crossover_rate=0.7, elitism_rate=0.05):
+def geneticOptimization(players, population_size=6500, generations=100, mutation_rate=0.95, crossover_rate=0.7, elitism_rate=0.05):
 
     best_individual = None
     population = initializePopulation(players)
@@ -59,7 +59,7 @@ def geneticOptimization(players, population_size=6500, generations=200, mutation
         #add the best individual to the next generation
         new_population.extend([best_individual])
         population =  new_population[:]
-        if(generation + 1)%100 == 0 or generation == 0:
+        if(generation + 1)%1 == 0 or generation == 0:
             print(f"Generation: {generation + 1}")
             print(f"best of this generation: {current_best_fitness} VS {best_fitness}")
     print("getting the values for sorted population[0], population[0] and best_individual")
@@ -106,6 +106,20 @@ def positiveMutation(players, individual):
             temp_score = sum(normalizedScore(temp_squad))
             n_attempts += 1
 
+    return temp_squad
+
+def BruteMutation(players, individual):
+    cur_score = sum(normalizedScore(individual))
+    temp_score = float("-inf")
+    #keep picking a new random player to swap into our chosen spot until score improves
+    n_attempts = 0
+    while cur_score >= temp_score and n_attempts < len(players):
+        mutants = random.sample(players, 2)
+        temp_squad = individual[:]
+        temp_squad.extend(player for player in mutants if player not in temp_squad)
+        temp_squad = bruteForce(temp_squad)
+        temp_score = sum(normalizedScore(temp_squad))
+        n_attempts += 1
     return temp_squad
 
 def mutate(players, individual):
@@ -239,6 +253,8 @@ def bruteForce(players, teamsize=15):
         if score > best_score:
             best_squad = squad[:]
             best_score = score
+    if not best_squad:
+        return players[:teamsize]
     return list(best_squad)
 
 def headToHead(current_squad, temp_squad):
