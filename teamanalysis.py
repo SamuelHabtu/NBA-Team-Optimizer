@@ -15,7 +15,7 @@ def evaluateSquad(cur_squad, potential_squad):
         win_counter += battle(cur_avgs, avgs, category)
     return win_counter
 
-def geneticOptimization(players, population_size=1296, generations=16000, mutation_rate=0.95, crossover_rate=0.07, elitism_rate=0.05):
+def geneticOptimization(players, population_size=6500, generations=200, mutation_rate=0.95, crossover_rate=0.7, elitism_rate=0.05):
 
     best_individual = None
     population = initializePopulation(players)
@@ -38,12 +38,12 @@ def geneticOptimization(players, population_size=1296, generations=16000, mutati
                 child_one = crossOver(parent_one, parent_two).copy()
                 child_two = crossOver(parent_one, parent_two).copy()
                 if random.uniform(0, 1) < mutation_rate:
-                    child_one = mutate(players, child_one).copy()
-                    child_two = mutate(players, child_two).copy()
+                    child_one = positiveMutation(players, child_one).copy()
+                    child_two = positiveMutation(players, child_two).copy()
                 new_population.extend([child_one.copy(), child_two.copy()])
             else:
                 if random.uniform(0, 1) < mutation_rate:
-                    new_population.extend([mutate(players, parent_one), mutate(players, parent_two)])
+                    new_population.extend([positiveMutation(players, parent_one), positiveMutation(players, parent_two)])
                 else:
                     new_population.extend([parent_one.copy(), parent_two.copy()])
         
@@ -91,6 +91,23 @@ def crossOver(parent_1, parent_2):
         child = child[:len(parent_1)]
 
     return child
+def positiveMutation(players, individual):
+    
+    cur_score = sum(normalizedScore(individual))
+    index_to_mutate = random.randint(0, len(individual) - 1)
+    temp_score = sum(normalizedScore(individual))
+    #keep picking a new random player to swap into our chosen spot until score improves
+    n_attempts = 0
+    while cur_score >= temp_score and n_attempts < len(players):
+        mutant = random.choice(players)
+        temp_squad = individual[:]
+        if mutant not in temp_squad:
+            temp_squad[index_to_mutate] = mutant
+            temp_score = sum(normalizedScore(temp_squad))
+            n_attempts += 1
+
+    return temp_squad
+
 def mutate(players, individual):
     mutated_player = random.choice(players)
     #avoiding repeated players(we wouldnt want the GOATED squad of all mitchell robinsons afterall)
