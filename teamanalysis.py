@@ -15,14 +15,14 @@ def evaluateSquad(cur_squad, potential_squad):
         win_counter += battle(cur_avgs, avgs, category)
     return win_counter
 
-def geneticOptimization(players, population_size=6500, generations=100, mutation_rate=0.95, crossover_rate=0.7, elitism_rate=0.05):
+def geneticOptimization(players, population_size=6500, generations=30, mutation_rate=0.95, crossover_rate=0.7, elitism_rate=0.05):
 
     best_individual = None
     population = initializePopulation(players)
     best_fitness = float("-inf")
     fitness_scores = []
     selected_parents = []
-    num_elites = int(elitism_rate * population_size)
+    num_elites = 3#int(elitism_rate * population_size)
 
     for generation in range(generations):
         fitness_scores = [sum(normalizedScore(individual)) for individual in population]
@@ -114,7 +114,7 @@ def BruteMutation(players, individual):
     #keep picking a new random player to swap into our chosen spot until score improves
     n_attempts = 0
     while cur_score >= temp_score and n_attempts < len(players):
-        mutants = random.sample(players, 2)
+        mutants = random.sample(players, 3)
         temp_squad = individual[:]
         temp_squad.extend(player for player in mutants if player not in temp_squad)
         temp_squad = bruteForce(temp_squad)
@@ -248,7 +248,7 @@ def optimize(players, teamsize = 15):
 def bruteForce(players, teamsize=15):
     best_squad = None
     best_score = float("-inf")
-    for squad in (itertools.combinations(players, 15)):
+    for squad in (itertools.combinations(players, teamsize)):
         score = sum(normalizedScore(squad))
         if score > best_score:
             best_squad = squad[:]
@@ -375,16 +375,30 @@ def freeAgents():
     print("---------------------------------------------------------------------")
     return hill_squad
 
+def weeklyFreeAgents():
+
+    players = extractPlayers("weeklyFAs.csv")
+    for player in players:
+        print(player['Name'])
+
+    hill_squad = geneticOptimization(players)
+    print("---------------------------------------------------------------------")
+    print(f"Here is our Optimized Squad")
+    for player in hill_squad:
+        print(f"{player['Name']}")
+    print("---------------------------------------------------------------------")
+    return hill_squad    
+
 def main():
     
     roster = extractPlayers("currentroster.csv")  
-    roster = bruteForce(roster)
+    roster = bruteForce(roster, 15)
     print("Optimized version of our roster")
     for player in roster:
         print(player['Name'])
+    print(f"With a score of {sum(normalizedScore(roster))}")
     print("-"*30)
     hill_squad = freeAgents()
-    #roster = bruteForce(players)
     print("-----------------------------------------------------------------------------------------------")
     print(f"Now let's do some theoretical matchups:")
     for opp in ["Slim reaper.csv", "Jimmy's Buckets.csv", "Dunk Daddies.csv", "Free throw merchants.csv"]:
@@ -399,6 +413,10 @@ def main():
     print(f"Hill squad Score: {sum(normalizedScore(hill_squad))} Brute force Score: {sum(normalizedScore(roster))}")
     print("Hill SQUAD:")
     for player in hill_squad:
+        print(f"{player['Name']}")
+    print(f"If for some reason everyone is playing at once heres the top 10:")
+    ten_man = bruteForce(hill_squad, 10)
+    for player in ten_man:
         print(player['Name'])
 
 if __name__ == '__main__':
