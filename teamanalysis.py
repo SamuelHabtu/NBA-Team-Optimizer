@@ -198,12 +198,7 @@ def averages(team):
     total_to = 0
     total_ftm = 0
     for player in team:
-        try:
-            total_pts += player["PTS"]
-        except:
-            print(team)
-            print("???????????????????????????????????????? ",player)
-
+        total_pts += player["PTS"]
         total_fga += player["FGA"]
         total_3pa += player["3PTA"]
         total_fgm += player["FGM"]
