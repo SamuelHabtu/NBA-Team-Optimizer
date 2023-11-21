@@ -403,7 +403,7 @@ def main():
     print("Optimized version of our roster")
     for player in roster:
         print(player['Name'])
-    print(f"With a score of {sum(normalizedScore(roster))}")
+    print(f"With a score of {sum(normalizedScore(roster, True))}")
     print("-"*30)
     optimized_squad = freeAgents()
     print("-----------------------------------------------------------------------------------------------")
