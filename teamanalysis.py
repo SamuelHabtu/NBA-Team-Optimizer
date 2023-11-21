@@ -15,7 +15,7 @@ def evaluateSquad(cur_squad, potential_squad):
         win_counter += battle(cur_avgs, avgs, category)
     return win_counter
 
-def geneticOptimization(players, population_size=650, generations=100, mutation_rate=0.95, crossover_rate=0.07, elitism_rate=0.05):
+def geneticOptimization(players, population_size=6500, generations=100, mutation_rate=0.95, crossover_rate=0.07, elitism_rate=0.05):
 
     best_individual = None
     population = initializePopulation(players)
@@ -63,7 +63,7 @@ def geneticOptimization(players, population_size=650, generations=100, mutation_
             print(f"Generation: {generation + 1}")
             print(f"best of this generation: {current_best_fitness} VS {best_fitness}")
     print("getting the values for sorted population[0], population[0] and best_individual")
-    for score in [sum(normalizedScore(sorted_population[0])), sum(normalizedScore(population[0])), sum(normalizedScore(best_individual))]:
+    for score in [sum(normalizedScore(sorted_population[0], True)), sum(normalizedScore(population[0])), sum(normalizedScore(best_individual))]:
         print(score)
     return new_population[0]
 
