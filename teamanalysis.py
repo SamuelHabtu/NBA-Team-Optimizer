@@ -201,7 +201,8 @@ def averages(team):
         try:
             total_pts += player["PTS"]
         except:
-            print(player["Name"])
+            print(team)
+            print("???????????????????????????????????????? ",player)
 
         total_fga += player["FGA"]
         total_3pa += player["3PTA"]
@@ -416,15 +417,19 @@ def main():
 
         matchUp(opp, optimized_squad)
     print("---------------------------------------------------------------------------------------------------")
-    print("Now let's see if we've found the global maximum in this small squad")
+    print("Now let's compare our optimized squad to our bruteforced roster -> is it worth getting free agents?")
     optimized_avg = averages(optimized_squad)
     roster_avg = averages(roster)
     for category in optimized_avg:
         print(f"Category: {category } Optimized Squad: {optimized_avg[category]} Brute force: {roster_avg[category]}")
-    print(f"Optimized squad Score: {sum(normalizedScore(optimized_avg, True))} Brute force Score: {sum(normalizedScore(roster, True))}")
+    
+    print(f"Optimized squad Score: {sum(normalizedScore(optimized_squad, True))} Brute force Score: {sum(normalizedScore(roster, True))}")
     print("Optimized SQUAD:")
     for player in optimized_squad:
         print(f"{player['Name']}")
-
+    print(f"If for some reason everyone is playing at once heres the top 10:")
+    ten_man = bruteForce(optimized_squad, 10)
+    for player in ten_man:
+        print(player['Name'])
 if __name__ == '__main__':
     main()
