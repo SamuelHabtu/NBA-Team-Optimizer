@@ -15,7 +15,7 @@ def evaluateSquad(cur_squad, potential_squad):
         win_counter += battle(cur_avgs, avgs, category)
     return win_counter
 
-def geneticOptimization(players, population_size=6500, generations=100, mutation_rate=0.95, crossover_rate=0.07, elitism_rate=0.05):
+def geneticOptimization(players, population_size=200, generations=1000, mutation_rate=0.95, crossover_rate=0.65, elitism_rate=0.05, min_max = False):
 
     best_individual = None
     population = initializePopulation(players)
@@ -25,7 +25,7 @@ def geneticOptimization(players, population_size=6500, generations=100, mutation
     num_elites = int(elitism_rate * population_size)
 
     for generation in range(generations):
-        fitness_scores = [sum(normalizedScore(individual, True)) for individual in population]
+        fitness_scores = [sum(normalizedScore(individual, min_max)) for individual in population]
         selected_parents = [tournamentSelection(population) for _ in range(population_size)]
         sorted_population = [x for _, x in sorted(zip(fitness_scores, population), key=lambda pair: pair[0], reverse=True)]
         #always yoink the best lads
@@ -38,16 +38,16 @@ def geneticOptimization(players, population_size=6500, generations=100, mutation
                 child_one = crossOver(parent_one, parent_two).copy()
                 child_two = crossOver(parent_one, parent_two).copy()
                 if random.uniform(0, 1) < mutation_rate:
-                    child_one = positiveMutation(players, child_one).copy()
-                    child_two = positiveMutation(players, child_two).copy()
+                    child_one = mutate(players, child_one).copy()
+                    child_two = mutate(players, child_two).copy()
                 new_population.extend([child_one.copy(), child_two.copy()])
             else:
                 if random.uniform(0, 1) < mutation_rate:
-                    new_population.extend([positiveMutation(players, parent_one), positiveMutation(players, parent_two)])
+                    new_population.extend([positiveMutation(players, parent_one, min_max), positiveMutation(players, parent_two, min_max)])
                 else:
                     new_population.extend([parent_one.copy(), parent_two.copy()])
         
-        current_best_fitness = sum(normalizedScore(sorted_population[0], True))
+        current_best_fitness = sum(normalizedScore(sorted_population[0], min))
         if current_best_fitness > best_fitness:
             print(f"Changing up best individual because: {current_best_fitness} > {best_fitness}")
             print(f"new best team with fitness: {current_best_fitness}")
@@ -91,11 +91,11 @@ def crossOver(parent_1, parent_2):
         child = child[:len(parent_1)]
 
     return child
-def positiveMutation(players, individual):
+def positiveMutation(players, individual, narrow_categories = False):
     
-    cur_score = sum(normalizedScore(individual, True))
+    cur_score = sum(normalizedScore(individual, narrow_categories))
     index_to_mutate = random.randint(0, len(individual) - 1)
-    temp_score = sum(normalizedScore(individual, True))
+    temp_score = sum(normalizedScore(individual, narrow_categories))
     #keep picking a new random player to swap into our chosen spot until score improves
     n_attempts = 0
     while cur_score >= temp_score and n_attempts < len(players):
@@ -103,7 +103,7 @@ def positiveMutation(players, individual):
         temp_squad = individual[:]
         if mutant not in temp_squad:
             temp_squad[index_to_mutate] = mutant
-            temp_score = sum(normalizedScore(temp_squad, True))
+            temp_score = sum(normalizedScore(temp_squad, narrow_categories))
             n_attempts += 1
 
     return temp_squad
@@ -231,11 +231,11 @@ def averages(team):
     
     return averages
 
-def bruteForce(players, teamsize=15):
+def bruteForce(players, teamsize=15, Optimize = False):
     best_squad = None
     best_score = float("-inf")
     for squad in (itertools.combinations(players, teamsize)):
-        score = sum(normalizedScore(squad))
+        score = sum(normalizedScore(squad), Optimize)
         if score > best_score:
             best_squad = squad[:]
             best_score = score
@@ -263,14 +263,14 @@ def normalizedScore(squad, min_max = False):
 
     stats = averages(squad)
     #MY USUAL DUMP STATS: 
-    min_Pts = 23250.0
+    min_Pts = 33696.0
     max_Pts = 39900.0
-    min_fgm = 4435
-    max_fgm = 7113.0
-    min_3ptm = 1067.8
-    max_3ptm = 1945.8
-    min_ftm = 1673.1
-    maX_ftm = 3755
+    min_fgm = 5868.0
+    max_fgm = 6854.0
+    min_3ptm = 1228.2000000000003
+    max_3ptm = 1906.7
+    min_ftm = 2806.7000000000003
+    maX_ftm = 3770.0
 
     #the handsome non dump stats below:
     min_FG_percent = 0.45863642846954783
@@ -279,15 +279,15 @@ def normalizedScore(squad, min_max = False):
     max_ThreePt_percent =  0.37893743257820933
     min_REB = 4834.0
     max_REB = 6220.0# Assuming this is the upper limit for rebounds 
-    min_AST = 3579.7
-    max_AST = 4416.2  # You'll need to determine the maximum possible value for AST based on your league settings
+    min_AST = 3499.0
+    max_AST = 4349.2  # You'll need to determine the maximum possible value for AST based on your league settings
     min_STL = 894.0999999999999
-    max_STL = 979.9999999999999# You'll need to determine the maximum possible value for STL based on your league settings
-    min_BLK = 560.3000000000001
-    max_BLK = 719.8 # You'll need to determine the maximum possible value for BLK based on your league settings
+    max_STL = 995.9999999999998# You'll need to determine the maximum possible value for STL based on your league settings
+    min_BLK = 607.5
+    max_BLK = 742.8999999999999 # You'll need to determine the maximum possible value for BLK based on your league settings
     min_AT = 1.6810134314497802
     max_AT = 2.1169155231733954 # You'll need to determine the maximum possible value for A/T based on your league settings
-    min_PF = -2415.0  # You'll need to determine the minimum possible value for PF based on your league settings
+    min_PF = -2353.7  # You'll need to determine the minimum possible value for PF based on your league settings
     max_PF = -2100.9
     # Normalize each statistic, each stat is also weighted by 1/Number of categories
     normalized_stats = []
@@ -399,15 +399,15 @@ def weeklyFreeAgents():
     return hill_squad    
 
 def main():
-    
+    narrow_Categories = False
     roster = extractPlayers("currentroster.csv")  
-    roster = bruteForce(roster, 15)
+    roster = bruteForce(roster, 15, narrow_Categories)
     print("Optimized version of our roster")
     for player in roster:
         print(player['Name'])
-    print(f"With a score of {sum(normalizedScore(roster, True))}")
+    print(f"With a score of {sum(normalizedScore(roster, narrow_Categories))}")
     print("-"*30)
-    optimized_squad = roster[:]#geneticOptimization(extractPlayers())
+    optimized_squad = geneticOptimization(extractPlayers(), min_max=narrow_Categories)
     print("-----------------------------------------------------------------------------------------------")
     print(f"Now let's do some theoretical matchups:")
     for opp in ["Slim reaper.csv", "Jimmy's Buckets.csv", "Dunk Daddies.csv", "Year of the Timberwolf.csv", "Rimjob.csv"]:
@@ -420,7 +420,7 @@ def main():
     for category in optimized_avg:
         print(f"Category: {category } Optimized Squad: {optimized_avg[category]} Brute force: {roster_avg[category]}")
     
-    print(f"Optimized squad Score: {sum(normalizedScore(optimized_squad, True))} Brute force Score: {sum(normalizedScore(roster, True))}")
+    print(f"Optimized squad Score: {sum(normalizedScore(optimized_squad, narrow_Categories))} Brute force Score: {sum(normalizedScore(roster, narrow_Categories))}")
     print("Optimized SQUAD:")
     for player in optimized_squad:
         print(f"{player['Name']}")
