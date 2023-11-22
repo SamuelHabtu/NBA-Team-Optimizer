@@ -25,7 +25,7 @@ def geneticOptimization(players, population_size=6500, generations=100, mutation
     num_elites = int(elitism_rate * population_size)
 
     for generation in range(generations):
-        fitness_scores = [sum(normalizedScore(individual), True) for individual in population]
+        fitness_scores = [sum(normalizedScore(individual, True)) for individual in population]
         selected_parents = [tournamentSelection(population) for _ in range(population_size)]
         sorted_population = [x for _, x in sorted(zip(fitness_scores, population), key=lambda pair: pair[0], reverse=True)]
         #always yoink the best lads
@@ -62,9 +62,11 @@ def geneticOptimization(players, population_size=6500, generations=100, mutation
         if(generation + 1)%1 == 0 or generation == 0:
             print(f"Generation: {generation + 1}")
             print(f"best of this generation: {current_best_fitness} VS {best_fitness}")
+    '''
     print("getting the values for sorted population[0], population[0] and best_individual")
     for score in [sum(normalizedScore(sorted_population[0], True)), sum(normalizedScore(population[0])), sum(normalizedScore(best_individual))]:
         print(score)
+    '''
     return new_population[0]
 
 def initializePopulation(players, population_size = 100, team_size = 15):
@@ -405,7 +407,7 @@ def main():
         print(player['Name'])
     print(f"With a score of {sum(normalizedScore(roster, True))}")
     print("-"*30)
-    optimized_squad = freeAgents()
+    optimized_squad = roster[:]#geneticOptimization(extractPlayers())
     print("-----------------------------------------------------------------------------------------------")
     print(f"Now let's do some theoretical matchups:")
     for opp in ["Slim reaper.csv", "Jimmy's Buckets.csv", "Dunk Daddies.csv", "Year of the Timberwolf.csv", "Rimjob.csv"]:
