@@ -38,12 +38,12 @@ def geneticOptimization(players, population_size=200, generations=1000, mutation
                 child_one = crossOver(parent_one, parent_two).copy()
                 child_two = crossOver(parent_one, parent_two).copy()
                 if random.uniform(0, 1) < mutation_rate:
-                    child_one = mutate(players, child_one).copy()
-                    child_two = mutate(players, child_two).copy()
+                    child_one = positiveMutation(players, child_one).copy()
+                    child_two = positiveMutation(players, child_two).copy()
                 new_population.extend([child_one.copy(), child_two.copy()])
             else:
                 if random.uniform(0, 1) < mutation_rate:
-                    new_population.extend([positiveMutation(players, parent_one, min_max), positiveMutation(players, parent_two, min_max)])
+                    new_population.extend([mutate(players, parent_one, min_max), mutate(players, parent_two, min_max)])
                 else:
                     new_population.extend([parent_one.copy(), parent_two.copy()])
         
@@ -122,7 +122,7 @@ def BruteMutation(players, individual):
         n_attempts += 1
     return temp_squad
 
-def mutate(players, individual):
+def mutate(players, individual, min_max = False):
     mutated_player = random.choice(players)
     #avoiding repeated players(we wouldnt want the GOATED squad of all mitchell robinsons afterall)
     while mutated_player in individual:
@@ -399,7 +399,7 @@ def weeklyFreeAgents():
     return hill_squad    
 
 def main():
-    narrow_Categories = False
+    narrow_Categories = True
     roster = extractPlayers("currentroster.csv")  
     roster = bruteForce(roster, 15, narrow_Categories)
     print("Optimized version of our roster")
@@ -408,7 +408,6 @@ def main():
     print(f"With a score of {sum(normalizedScore(roster, narrow_Categories))}")
     print("-"*30)
     optimized_squad = geneticOptimization(extractPlayers(), min_max=narrow_Categories)
-    print("-----------------------------------------------------------------------------------------------")
     print(f"Now let's do some theoretical matchups:")
     for opp in ["Slim reaper.csv", "Jimmy's Buckets.csv", "Dunk Daddies.csv", "Year of the Timberwolf.csv", "Rimjob.csv"]:
 
