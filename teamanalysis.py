@@ -15,7 +15,7 @@ def evaluateSquad(cur_squad, potential_squad):
         win_counter += battle(cur_avgs, avgs, category)
     return win_counter
 
-def geneticOptimization(players, population_size=200, generations=1000, mutation_rate=0.95, crossover_rate=0.65, elitism_rate=0.05, min_max = False):
+def geneticOptimization(players, population_size=4000, generations=200, mutation_rate= 0.5, crossover_rate=0.6, elitism_rate=0.05, min_max = False):
 
     best_individual = None
     population = initializePopulation(players)
@@ -23,10 +23,9 @@ def geneticOptimization(players, population_size=200, generations=1000, mutation
     fitness_scores = []
     selected_parents = []
     num_elites = int(elitism_rate * population_size)
-
     for generation in range(generations):
         fitness_scores = [sum(normalizedScore(individual, min_max)) for individual in population]
-        selected_parents = [tournamentSelection(population) for _ in range(population_size)]
+        selected_parents = [tournamentSelection(population,narrow_categories=min_max) for _ in range(population_size)]
         sorted_population = [x for _, x in sorted(zip(fitness_scores, population), key=lambda pair: pair[0], reverse=True)]
         #always yoink the best lads
         new_population = sorted_population[:num_elites].copy()
@@ -38,8 +37,8 @@ def geneticOptimization(players, population_size=200, generations=1000, mutation
                 child_one = crossOver(parent_one, parent_two).copy()
                 child_two = crossOver(parent_one, parent_two).copy()
                 if random.uniform(0, 1) < mutation_rate:
-                    child_one = positiveMutation(players, child_one).copy()
-                    child_two = positiveMutation(players, child_two).copy()
+                    child_one = mutate(players, child_one).copy()
+                    child_two = mutate(players, child_two).copy()
                 new_population.extend([child_one.copy(), child_two.copy()])
             else:
                 if random.uniform(0, 1) < mutation_rate:
@@ -56,6 +55,7 @@ def geneticOptimization(players, population_size=200, generations=1000, mutation
             print("------------------------------------------------------------")
             best_fitness = current_best_fitness
             best_individual = sorted_population[0].copy()
+
         #add the best individual to the next generation
         new_population.extend([best_individual])
         population =  new_population[:]
@@ -67,7 +67,7 @@ def geneticOptimization(players, population_size=200, generations=1000, mutation
     for score in [sum(normalizedScore(sorted_population[0], True)), sum(normalizedScore(population[0])), sum(normalizedScore(best_individual))]:
         print(score)
     '''
-    return new_population[0]
+    return best_individual
 
 def initializePopulation(players, population_size = 100, team_size = 15):
     #create teams equal to the number of populations
@@ -76,9 +76,12 @@ def initializePopulation(players, population_size = 100, team_size = 15):
         populations.append(randomStart(players))
     return populations
 
-def tournamentSelection(population, tournament_size = 3):
+def tournamentSelection(population, tournament_size = 3, narrow_categories = False):
     participants = random.sample(population, tournament_size)
-    return max(participants, key = normalizedScore)
+    fitness_scores = []
+    for participant in participants:
+        fitness_scores.append(normalizedScore(participant, narrow_categories))
+    return participants[fitness_scores.index(max(fitness_scores))]
 
 def crossOver(parent_1, parent_2):
     crossover_point = random.randint(1, len(parent_1) - 1)
