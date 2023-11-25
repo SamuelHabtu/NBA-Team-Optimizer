@@ -15,7 +15,7 @@ def evaluateSquad(cur_squad, potential_squad):
         win_counter += battle(cur_avgs, avgs, category)
     return win_counter
 
-def geneticOptimization(players, population_size=4000, generations=200, mutation_rate= 0.5, crossover_rate=0.6, elitism_rate=0.05, min_max = False):
+def geneticOptimization(players, population_size=4000, generations=200, mutation_rate= 0.7, crossover_rate=0.6, elitism_rate=0.05, min_max = False):
 
     best_individual = None
     population = initializePopulation(players)
@@ -34,8 +34,7 @@ def geneticOptimization(players, population_size=4000, generations=200, mutation
             parent_one = selected_parents[i].copy()
             parent_two = selected_parents[i + 1].copy()
             if random.uniform(0, 1) < crossover_rate:
-                child_one = crossOver(parent_one, parent_two).copy()
-                child_two = crossOver(parent_one, parent_two).copy()
+                child_one, child_two = crossOver(parent_one, parent_two)
                 if random.uniform(0, 1) < mutation_rate:
                     child_one = mutate(players, child_one).copy()
                     child_two = mutate(players, child_two).copy()
@@ -61,7 +60,7 @@ def geneticOptimization(players, population_size=4000, generations=200, mutation
         population =  new_population[:]
         if(generation + 1)%1 == 0 or generation == 0:
             print(f"Generation: {generation + 1}")
-            print(f"best of this generation: {current_best_fitness} VS {best_fitness}")
+            print(f"best of this generation: {current_best_fitness} VS {best_fitness} -> Has length: {len(new_population[0])}")
     '''
     print("getting the values for sorted population[0], population[0] and best_individual")
     for score in [sum(normalizedScore(sorted_population[0], True)), sum(normalizedScore(population[0])), sum(normalizedScore(best_individual))]:
@@ -87,13 +86,17 @@ def crossOver(parent_1, parent_2):
     crossover_point = random.randint(1, len(parent_1) - 1)
     
     # The crossover operation
-    child = parent_1[:crossover_point] + [player for player in parent_2 if player not in parent_1[:crossover_point]]
-    
-    # Adjust the child size if it's too large
-    if len(child) > len(parent_1):
-        child = child[:len(parent_1)]
-
-    return child
+    child_one = parent_1[:crossover_point]
+    child_two = parent_2[:crossover_point]
+    for player in parent_2[crossover_point:]:
+        while player in child_one:
+            player = random.choice(parent_2)
+        child_one.append(player)    
+    for player in parent_1[crossover_point:]:
+        while player in child_two:
+            player = random.choice(parent_1)
+        child_two.append(player)
+    return (child_one, child_two)
 def positiveMutation(players, individual, narrow_categories = False):
     
     cur_score = sum(normalizedScore(individual, narrow_categories))
