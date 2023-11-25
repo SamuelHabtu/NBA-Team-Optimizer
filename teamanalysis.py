@@ -97,6 +97,7 @@ def crossOver(parent_1, parent_2):
             player = random.choice(parent_1)
         child_two.append(player)
     return (child_one, child_two)
+
 def positiveMutation(players, individual, narrow_categories = False):
     
     cur_score = sum(normalizedScore(individual, narrow_categories))

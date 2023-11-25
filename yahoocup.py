@@ -132,15 +132,9 @@ def commonPlayers(squada, squadb):
         if squada[slot] in squadb.values():
             common_players.append(squada[slot])
     return common_players
+
 def crossOver(parent_1, parent_2):
     
-    common_values = commonPlayers(parent_1, parent_2)
-    swappable_positions = list(parent_1.keys())
-    for value in common_values:
-        for position in swappable_positions:
-            if parent_1[position] == value or parent_2[position] == value:
-                swappable_positions.remove(position)
-
     #first we choose a random number of positions to swap
     num_positions_to_swap = random.randint(0,len(swappable_positions))
     #we randomly pick which positions to swap(instead of taking a chunk since the positioning of the swaps doesnt matter too much)
