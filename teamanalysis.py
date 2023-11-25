@@ -15,7 +15,7 @@ def evaluateSquad(cur_squad, potential_squad):
         win_counter += battle(cur_avgs, avgs, category)
     return win_counter
 
-def geneticOptimization(players, population_size=4000, generations=200, mutation_rate= 0.7, crossover_rate=0.6, elitism_rate=0.05, min_max = False):
+def geneticOptimization(players, population_size=25000, generations=100, mutation_rate= 0.75, crossover_rate=0.6, elitism_rate=0.05, min_max = False):
 
     best_individual = None
     population = initializePopulation(players)
@@ -44,8 +44,8 @@ def geneticOptimization(players, population_size=4000, generations=200, mutation
                     new_population.extend([mutate(players, parent_one, min_max), mutate(players, parent_two, min_max)])
                 else:
                     new_population.extend([parent_one.copy(), parent_two.copy()])
-        
-        current_best_fitness = sum(normalizedScore(sorted_population[0], min))
+        narrow_cats = min_max
+        current_best_fitness = sum(normalizedScore(sorted_population[0], min_max=narrow_cats))
         if current_best_fitness > best_fitness:
             print(f"Changing up best individual because: {current_best_fitness} > {best_fitness}")
             print(f"new best team with fitness: {current_best_fitness}")
@@ -270,56 +270,58 @@ def normalizedScore(squad, min_max = False):
 
     stats = averages(squad)
     #MY USUAL DUMP STATS: 
-    min_Pts = 33696.0
-    max_Pts = 39900.0
-    min_fgm = 5868.0
-    max_fgm = 6854.0
-    min_3ptm = 1228.2000000000003
+    min_Pts = 33110.0
+    max_Pts = 37494.0
+    min_fgm = 5747.0
+    max_fgm = 6645.0
+    min_3ptm = 1276.4999999999998
     max_3ptm = 1906.7
-    min_ftm = 2806.7000000000003
-    maX_ftm = 3770.0
+    min_ftm = 2895.1000000000004
+    maX_ftm = 3644.0
 
     #the handsome non dump stats below:
-    min_FG_percent = 0.45863642846954783
+    min_FG_percent = 0.46757790253030673
     max_FG_percent = 0.5078217121295495
-    min_ThreePt_percent =  0.35753030201567
-    max_ThreePt_percent =  0.37893743257820933
-    min_REB = 4834.0
-    max_REB = 6220.0# Assuming this is the upper limit for rebounds 
-    min_AST = 3499.0
-    max_AST = 4349.2  # You'll need to determine the maximum possible value for AST based on your league settings
-    min_STL = 894.0999999999999
-    max_STL = 995.9999999999998# You'll need to determine the maximum possible value for STL based on your league settings
-    min_BLK = 607.5
-    max_BLK = 742.8999999999999 # You'll need to determine the maximum possible value for BLK based on your league settings
-    min_AT = 1.6810134314497802
-    max_AT = 2.1169155231733954 # You'll need to determine the maximum possible value for A/T based on your league settings
-    min_PF = -2353.7  # You'll need to determine the minimum possible value for PF based on your league settings
-    max_PF = -2100.9
+    min_ThreePt_percent =  0.3556776556776557
+    max_ThreePt_percent =  0.3772602612373913
+    min_REB = 4642.0
+    max_REB = 5837.0# Assuming this is the upper limit for rebounds 
+    min_AST = 3722.5000000000005
+    max_AST = 4129.8  # You'll need to determine the maximum possible value for AST based on your league settings
+    min_STL = 902.1999999999999
+    max_STL = 954.9000000000001# You'll need to determine the maximum possible value for STL based on your league settings
+    min_BLK = 598.0000000000001
+    max_BLK = 740.6999999999999 # You'll need to determine the maximum possible value for BLK based on your league settings
+    min_AT = 1.8731961434161408
+    max_AT = 2.0567122942285065 # You'll need to determine the maximum possible value for A/T based on your league settings
+    min_PF =  -1999.3 # You'll need to determine the minimum possible value for PF based on your league settings
+    max_PF =  -2204.1
     # Normalize each statistic, each stat is also weighted by 1/Number of categories
     normalized_stats = []
     n_categories = 12
-    category_cap = 1.12500
+    category_cap = 1.2#1.125
     if min_max:
-        n_categories = 8
+        n_categories = 7
 
     normalized_stats.append((stats["PTS"] - min_Pts)/(max_Pts - min_Pts)*(1/n_categories))
     normalized_stats.append((stats["FGM"] - min_fgm)/(max_fgm - min_fgm)*(1/n_categories))
-    normalized_stats.append((stats["3PTM"] - min_3ptm)/(max_3ptm - min_3ptm)*(1/n_categories))
     normalized_stats.append((stats["FTM"] - min_ftm)/(maX_ftm - min_ftm)*(1/n_categories))
+    normalized_stats.append((stats["3PTM"] - min_3ptm)/(max_3ptm - min_3ptm)*(1/n_categories))
+    normalized_stats.append((stats["AST"] - min_AST) / (max_AST - min_AST)*(1/n_categories))
+
+
+    normalized_stats.append(( max_PF - stats["PF"]) / (max_PF - min_PF)*(1/n_categories))
     normalized_stats.append((stats["FG%"] - min_FG_percent) / (max_FG_percent - min_FG_percent)*(1/n_categories))
     normalized_stats.append((stats["3PT%"] - min_ThreePt_percent) / (max_ThreePt_percent - min_ThreePt_percent)*(1/n_categories))
     normalized_stats.append((stats["REB"] - min_REB) / (max_REB - min_REB)*(1/n_categories))
-    normalized_stats.append((stats["AST"] - min_AST) / (max_AST - min_AST)*(1/n_categories))
     normalized_stats.append((stats["STL"] - min_STL) / (max_STL - min_STL)*(1/n_categories)) 
     normalized_stats.append((stats["BLK"] - min_BLK) / (max_BLK - min_BLK)*(1/n_categories))
     normalized_stats.append((stats["A/T"] - min_AT) / (max_AT - min_AT)*(1/n_categories))
-    normalized_stats.append(( max_PF - stats["PF"]) / (max_PF - min_PF)*(1/n_categories))
     #weight everything AND then we also cap the values at 15% higher because realistically 15% should be a good enough margin
     #if you're ahead of the maximum by more than that you're over investing in a category
     #I can make this more fancy later for now the first 4 cat's are my dumps
     if min_max:
-        for i in range(4):
+        for i in range(5):
             normalized_stats[i] = 0.0
     for i in range(len(normalized_stats)):
         normalized_stats[i] = min(normalized_stats[i],category_cap *(1/n_categories))
@@ -416,7 +418,7 @@ def main():
     print("-"*30)
     optimized_squad = geneticOptimization(extractPlayers(), min_max=narrow_Categories)
     print(f"Now let's do some theoretical matchups:")
-    for opp in ["Slim reaper.csv", "Jimmy's Buckets.csv", "Dunk Daddies.csv", "Year of the Timberwolf.csv", "Rimjob.csv"]:
+    for opp in ["Slim reaper.csv", "Jimmy's Buckets.csv", "Dunk Daddies.csv", "Year of the Timberwolf.csv"]:
 
         matchUp(opp, optimized_squad)
     print("---------------------------------------------------------------------------------------------------")

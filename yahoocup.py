@@ -24,7 +24,17 @@ def evaluateSquad(squad):
     score = 0
     for player in squad:
         score += squad[player]["FFPG"]
-    return score * salaryCheck(squad)
+    return score * salaryCheck(squad) * checkDuplicates(squad)
+
+def checkDuplicates(squad):
+
+    known_players = set({})
+    for slot in squad:
+        if squad[slot]['Name'] in known_players:
+            return 0
+        else:
+            known_players.add(squad[slot]['Name']) 
+    return 1
 
 def hillClimb(players,num_restarts = 6420, max_iterations = 500, num_processes = 4):
     print(f"searching through: {len(players)} players, with {num_restarts} restarts and {max_iterations} iterations split up into {num_processes} threads")
@@ -59,7 +69,7 @@ def hillClimbSingleRun(players, max_iterations):
     n_runs += 1
     return best_squad
 
-def geneticOptimization(players, population_size=5000, generations=200, mutation_rate= 0.5, crossover_rate=0.6, elitism_rate=0.05, min_max = False):
+def geneticOptimization(players, population_size=10000, generations=100, mutation_rate= 0.5, crossover_rate=0.6, elitism_rate=0.05, min_max = False):
 
     best_individual = None
     population = initializePopulation(players)
@@ -126,25 +136,20 @@ def tournamentSelection(population, tournament_size = 3):
     for participant in participants:
         fitness_scores.append(evaluateSquad(participant))
     return participants[fitness_scores.index(max(fitness_scores))]
-def commonPlayers(squada, squadb):
-    common_players = []
-    for slot in squada:
-        if squada[slot] in squadb.values():
-            common_players.append(squada[slot])
-    return common_players
+
 
 def crossOver(parent_1, parent_2):
+
     
-    #first we choose a random number of positions to swap
-    num_positions_to_swap = random.randint(0,len(swappable_positions))
+    num_positions_to_swap = random.randint(0,len(parent_1.keys()))
     #we randomly pick which positions to swap(instead of taking a chunk since the positioning of the swaps doesnt matter too much)
-    positions_to_Swap = random.sample(swappable_positions, num_positions_to_swap)
+    positions_to_Swap = random.sample(list(parent_1.keys()), num_positions_to_swap)
     # The crossover operation -> we just do a little swaparoo
     for position in positions_to_Swap:
         parent_1[position], parent_2[position] = parent_2[position], parent_1[position]
     #now we check for conflicts e.g: parent_one has mitchell robinson as Center, while parent_two has mitchell robinson as Util
     #which could potentially lead to a goated(but illegal) squad with 2 mitchell robinsons
-
+            
     return (parent_1, parent_2)
 
 
