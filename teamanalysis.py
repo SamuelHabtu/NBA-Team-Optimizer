@@ -15,7 +15,7 @@ def evaluateSquad(cur_squad, potential_squad):
         win_counter += battle(cur_avgs, avgs, category)
     return win_counter
 
-def geneticOptimization(players, population_size=25000, generations=100, mutation_rate= 0.75, crossover_rate=0.6, elitism_rate=0.05, min_max = False):
+def geneticOptimization(players, population_size=15000, generations=100, mutation_rate= 0.50, crossover_rate=0.80, elitism_rate=0.05, min_max = False):
 
     best_individual = None
     population = initializePopulation(players)
@@ -66,6 +66,8 @@ def geneticOptimization(players, population_size=25000, generations=100, mutatio
     for score in [sum(normalizedScore(sorted_population[0], True)), sum(normalizedScore(population[0])), sum(normalizedScore(best_individual))]:
         print(score)
     '''
+    for val in normalizedScore(best_individual, min_max):
+        print(val)
     return best_individual
 
 def initializePopulation(players, population_size = 100, team_size = 15):
@@ -168,24 +170,6 @@ def hillClimbSingleRun(players, team_size, max_iterations):
             cur_score = neighbor_score
     return cur_squad
 
-def altHillClimb(players,num_restarts = 10000, max_iterations = 5000, team_size = 15):
-    
-    best_squad = optimize(extractPlayers("Jimmy's Buckets.csv"))
-    for _ in range(num_restarts): 
-        print(f"Start #{_ + 1}") 
-        cur_squad = randomStart(players, team_size)
-        for _ in range(max_iterations):
-            neighbour_squad = cur_squad.copy()
-            index_to_swap = random.randint(0, team_size - 1)
-            new_player = new_player = random.choice([p for p in players if p not in cur_squad])  # Exclude players already in squad
-            neighbour_squad[index_to_swap] = new_player
-            cur_score = evaluateSquad(cur_squad, neighbour_squad)
-            if evaluateSquad(cur_squad, neighbour_squad) > evaluateSquad(neighbour_squad, cur_squad):
-                cur_squad = neighbour_squad[:]
-                if evaluateSquad(best_squad, cur_squad) > evaluateSquad(cur_squad, best_squad):
-                    best_squad = cur_squad[:]
-                
-    return best_squad
 
     
 
@@ -270,61 +254,65 @@ def normalizedScore(squad, min_max = False):
 
     stats = averages(squad)
     #MY USUAL DUMP STATS: 
-    min_Pts = 33110.0
-    max_Pts = 37494.0
-    min_fgm = 5747.0
-    max_fgm = 6645.0
-    min_3ptm = 1276.4999999999998
-    max_3ptm = 1906.7
-    min_ftm = 2895.1000000000004
-    maX_ftm = 3644.0
+    min_Pts = 1405.6000000000004
+    max_Pts = 1732.6000000000008
+    min_fgm = 246.40000000000003
+    max_fgm = 309.9
+    min_3ptm = 61.10000000000001
+    max_3ptm = 85.7
+    min_ftm = 125.50000000000001
+    maX_ftm = 161.00000000000003
 
     #the handsome non dump stats below:
-    min_FG_percent = 0.46757790253030673
-    max_FG_percent = 0.5078217121295495
-    min_ThreePt_percent =  0.3556776556776557
-    max_ThreePt_percent =  0.3772602612373913
-    min_REB = 4642.0
-    max_REB = 5837.0# Assuming this is the upper limit for rebounds 
-    min_AST = 3722.5000000000005
-    max_AST = 4129.8  # You'll need to determine the maximum possible value for AST based on your league settings
-    min_STL = 902.1999999999999
-    max_STL = 954.9000000000001# You'll need to determine the maximum possible value for STL based on your league settings
-    min_BLK = 598.0000000000001
-    max_BLK = 740.6999999999999 # You'll need to determine the maximum possible value for BLK based on your league settings
-    min_AT = 1.8731961434161408
-    max_AT = 2.0567122942285065 # You'll need to determine the maximum possible value for A/T based on your league settings
-    min_PF =  -1999.3 # You'll need to determine the minimum possible value for PF based on your league settings
-    max_PF =  -2204.1
+    min_FG_percent = 0.47255260750228734
+    max_FG_percent = 0.517886994316282
+    min_ThreePt_percent =  0.36030828516377655
+    max_ThreePt_percent =  0.3790322580645161
+    min_REB = 243.4
+    max_REB = 302.20000000000005# Assuming this is the upper limit for rebounds 
+    min_AST = 148.50000000000003
+    max_AST = 194.60000000000005
+    min_STL = 39.0
+    max_STL = 46.00000000000001
+    min_BLK = 26.699999999999996
+    max_BLK = 38.599999999999994
+    min_AT = 1.88215197761084
+    max_AT = 2.0804707280790002 
+    min_PF =  -111.70000000000002
+    max_PF =  -87.0
     # Normalize each statistic, each stat is also weighted by 1/Number of categories
     normalized_stats = []
     n_categories = 12
-    category_cap = 1.2#1.125
+    category_cap = 1.05
     if min_max:
         n_categories = 7
-
     normalized_stats.append((stats["PTS"] - min_Pts)/(max_Pts - min_Pts)*(1/n_categories))
-    normalized_stats.append((stats["FGM"] - min_fgm)/(max_fgm - min_fgm)*(1/n_categories))
     normalized_stats.append((stats["FTM"] - min_ftm)/(maX_ftm - min_ftm)*(1/n_categories))
+    normalized_stats.append((stats["FGM"] - min_fgm)/(max_fgm - min_fgm)*(1/n_categories))
+
     normalized_stats.append((stats["3PTM"] - min_3ptm)/(max_3ptm - min_3ptm)*(1/n_categories))
     normalized_stats.append((stats["AST"] - min_AST) / (max_AST - min_AST)*(1/n_categories))
-
-
-    normalized_stats.append(( max_PF - stats["PF"]) / (max_PF - min_PF)*(1/n_categories))
-    normalized_stats.append((stats["FG%"] - min_FG_percent) / (max_FG_percent - min_FG_percent)*(1/n_categories))
+    
     normalized_stats.append((stats["3PT%"] - min_ThreePt_percent) / (max_ThreePt_percent - min_ThreePt_percent)*(1/n_categories))
-    normalized_stats.append((stats["REB"] - min_REB) / (max_REB - min_REB)*(1/n_categories))
-    normalized_stats.append((stats["STL"] - min_STL) / (max_STL - min_STL)*(1/n_categories)) 
     normalized_stats.append((stats["BLK"] - min_BLK) / (max_BLK - min_BLK)*(1/n_categories))
+    normalized_stats.append((stats["STL"] - min_STL) / (max_STL - min_STL)*(1/n_categories)) 
+    normalized_stats.append((stats["FG%"] - min_FG_percent) / (max_FG_percent - min_FG_percent)*(1/n_categories))
+    normalized_stats.append(( stats["PF"]- min_PF) / (max_PF - min_PF)*(1/n_categories))
+    normalized_stats.append((stats["REB"] - min_REB) / (max_REB - min_REB)*(1/n_categories))
     normalized_stats.append((stats["A/T"] - min_AT) / (max_AT - min_AT)*(1/n_categories))
-    #weight everything AND then we also cap the values at 15% higher because realistically 15% should be a good enough margin
+
+    best_stats = []
+    #weight everything AND then we also cap the values at 15% higher because realistically 10% should be a good enough margin
     #if you're ahead of the maximum by more than that you're over investing in a category
     #I can make this more fancy later for now the first 4 cat's are my dumps
     if min_max:
-        for i in range(5):
-            normalized_stats[i] = 0.0
+
+        for i in range(12 - n_categories):
+            normalized_stats[i] = 0
+
     for i in range(len(normalized_stats)):
         normalized_stats[i] = min(normalized_stats[i],category_cap *(1/n_categories))
+
     
     return normalized_stats
 
@@ -353,6 +341,7 @@ def extractPlayers(filename = "freeagents.csv"):
             temp_player = {}
             standard_size = 15
             size_delta = len(player_info) - standard_size
+            #print(player_info)
             temp_player["Name"] = player_info[0]
             temp_player["FGM"] = float(player_info[1 + size_delta])
             temp_player["FGA"] = float(player_info[2 + size_delta])
@@ -411,12 +400,13 @@ def main():
     narrow_Categories = True
     roster = extractPlayers("currentroster.csv")  
     roster = bruteForce(roster, 15, narrow_Categories)
+    players = extractPlayers()
     print("Optimized version of our roster")
     for player in roster:
         print(player['Name'])
     print(f"With a score of {sum(normalizedScore(roster, narrow_Categories))}")
     print("-"*30)
-    optimized_squad = geneticOptimization(extractPlayers(), min_max=narrow_Categories)
+    optimized_squad = geneticOptimization(players, min_max=narrow_Categories)
     print(f"Now let's do some theoretical matchups:")
     for opp in ["Slim reaper.csv", "Jimmy's Buckets.csv", "Dunk Daddies.csv", "Year of the Timberwolf.csv"]:
 
