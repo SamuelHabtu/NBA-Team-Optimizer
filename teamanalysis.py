@@ -15,7 +15,7 @@ def evaluateSquad(cur_squad, potential_squad):
         win_counter += battle(cur_avgs, avgs, category)
     return win_counter
 
-def geneticOptimization(players, population_size=15000, generations=100, mutation_rate= 0.50, crossover_rate=0.80, elitism_rate=0.05, min_max = False):
+def geneticOptimization(players, population_size=25000, generations=100, mutation_rate= 0.60, crossover_rate=0.80, elitism_rate=0.05, min_max = False):
 
     best_individual = None
     population = initializePopulation(players)
@@ -254,51 +254,51 @@ def normalizedScore(squad, min_max = False):
 
     stats = averages(squad)
     #MY USUAL DUMP STATS: 
-    min_Pts = 1405.6000000000004
-    max_Pts = 1732.6000000000008
-    min_fgm = 246.40000000000003
-    max_fgm = 309.9
-    min_3ptm = 61.10000000000001
-    max_3ptm = 85.7
-    min_ftm = 125.50000000000001
-    maX_ftm = 161.00000000000003
+    min_Pts = 29069.800000000003
+    max_Pts = 35470.0
+    min_fgm = 5030.3 
+    max_fgm = 6307.0
+    min_3ptm = 1316.9999999999998
+    max_3ptm = 1854.4
+    min_ftm =  2302.4999999999995
+    maX_ftm = 3240.9
 
     #the handsome non dump stats below:
-    min_FG_percent = 0.47255260750228734
-    max_FG_percent = 0.517886994316282
-    min_ThreePt_percent =  0.36030828516377655
-    max_ThreePt_percent =  0.3790322580645161
-    min_REB = 243.4
-    max_REB = 302.20000000000005# Assuming this is the upper limit for rebounds 
-    min_AST = 148.50000000000003
-    max_AST = 194.60000000000005
-    min_STL = 39.0
-    max_STL = 46.00000000000001
-    min_BLK = 26.699999999999996
-    max_BLK = 38.599999999999994
-    min_AT = 1.88215197761084
-    max_AT = 2.0804707280790002 
-    min_PF =  -111.70000000000002
-    max_PF =  -87.0
+    min_FG_percent =0.47018040852840315
+    max_FG_percent =  0.51
+    min_ThreePt_percent =  0.35447058190235237
+    max_ThreePt_percent =  0.38145948350296977
+    min_REB =  4258.9 
+    max_REB = 6108.0# Assuming this is the upper limit for rebounds 
+    min_AST = 3450.1
+    max_AST = 4120.7
+    min_STL = 829.9000000000001
+    max_STL = 927.9
+    min_BLK = 642.6
+    max_BLK = 724.0999999999999
+    min_AT =  2.037886716281323
+    max_AT = 2.096469212226012
+    min_PF =  -2158.2000000000003
+    max_PF =  -1897.2
     # Normalize each statistic, each stat is also weighted by 1/Number of categories
     normalized_stats = []
     n_categories = 12
-    category_cap = 1.05
+    category_cap = 1.025
     if min_max:
-        n_categories = 7
+        n_categories = 6
+
+    normalized_stats.append((stats["3PTM"] - min_3ptm)/(max_3ptm - min_3ptm)*(1/n_categories))
     normalized_stats.append((stats["PTS"] - min_Pts)/(max_Pts - min_Pts)*(1/n_categories))
     normalized_stats.append((stats["FTM"] - min_ftm)/(maX_ftm - min_ftm)*(1/n_categories))
     normalized_stats.append((stats["FGM"] - min_fgm)/(max_fgm - min_fgm)*(1/n_categories))
-
-    normalized_stats.append((stats["3PTM"] - min_3ptm)/(max_3ptm - min_3ptm)*(1/n_categories))
     normalized_stats.append((stats["AST"] - min_AST) / (max_AST - min_AST)*(1/n_categories))
     
-    normalized_stats.append((stats["3PT%"] - min_ThreePt_percent) / (max_ThreePt_percent - min_ThreePt_percent)*(1/n_categories))
-    normalized_stats.append((stats["BLK"] - min_BLK) / (max_BLK - min_BLK)*(1/n_categories))
-    normalized_stats.append((stats["STL"] - min_STL) / (max_STL - min_STL)*(1/n_categories)) 
-    normalized_stats.append((stats["FG%"] - min_FG_percent) / (max_FG_percent - min_FG_percent)*(1/n_categories))
-    normalized_stats.append(( stats["PF"]- min_PF) / (max_PF - min_PF)*(1/n_categories))
     normalized_stats.append((stats["REB"] - min_REB) / (max_REB - min_REB)*(1/n_categories))
+    normalized_stats.append((stats["FG%"] - min_FG_percent) / (max_FG_percent - min_FG_percent)*(1/n_categories))
+    normalized_stats.append((stats["BLK"] - min_BLK) / (max_BLK - min_BLK)*(1/n_categories))
+    normalized_stats.append((stats["3PT%"] - min_ThreePt_percent) / (max_ThreePt_percent - min_ThreePt_percent)*(1/n_categories))
+    normalized_stats.append((stats["STL"] - min_STL) / (max_STL - min_STL)*(1/n_categories)) 
+    normalized_stats.append(( stats["PF"]- min_PF) / (max_PF - min_PF)*(1/n_categories))
     normalized_stats.append((stats["A/T"] - min_AT) / (max_AT - min_AT)*(1/n_categories))
 
     best_stats = []
@@ -309,7 +309,7 @@ def normalizedScore(squad, min_max = False):
 
         for i in range(12 - n_categories):
             normalized_stats[i] = 0
-
+        normalized_stats[12 - n_categories - 1] = normalized_stats[12 - n_categories - 1]/2
     for i in range(len(normalized_stats)):
         normalized_stats[i] = min(normalized_stats[i],category_cap *(1/n_categories))
 
