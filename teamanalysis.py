@@ -285,7 +285,7 @@ def normalizedScore(squad, min_max = False):
     n_categories = 12
     category_cap = 1.00
     if min_max:
-        n_categories = 8
+        n_categories = 12
     #CATEGORIES i LITEARLLY CANNOT REACH THE MAX ON(RAN THE ALGORITHM only considering these categories and still couldnt beat everyone at it)
     normalized_stats.append((stats["PTS"] - min_Pts)/(max_Pts - min_Pts)*(1/n_categories))
     normalized_stats.append((stats["FGM"] - min_fgm)/(max_fgm - min_fgm)*(1/n_categories))
