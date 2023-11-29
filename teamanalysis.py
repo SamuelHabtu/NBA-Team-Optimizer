@@ -285,32 +285,29 @@ def normalizedScore(squad, min_max = False):
     n_categories = 12
     category_cap = 1.00
     if min_max:
-        n_categories = 6
+        n_categories = 8
     #CATEGORIES i LITEARLLY CANNOT REACH THE MAX ON(RAN THE ALGORITHM only considering these categories and still couldnt beat everyone at it)
     normalized_stats.append((stats["PTS"] - min_Pts)/(max_Pts - min_Pts)*(1/n_categories))
     normalized_stats.append((stats["FGM"] - min_fgm)/(max_fgm - min_fgm)*(1/n_categories))
     normalized_stats.append((stats["AST"] - min_AST) / (max_AST - min_AST)*(1/n_categories))
     normalized_stats.append((stats["FTM"] - min_ftm)/(maX_ftm - min_ftm)*(1/n_categories))
     #---------------------------------------------------------------------------------------------------------------------------------------------
-    normalized_stats.append((stats["BLK"] - min_BLK) / (max_BLK - min_BLK)*(1/n_categories))
-    normalized_stats.append((stats["FG%"] - min_FG_percent) / (max_FG_percent - min_FG_percent)*(1/n_categories))
+
 
 
     #categories where I am CLOSE to reaching Max or barely beat/lose to the best opponent at this CAT
-
+    normalized_stats.append((stats["3PTM"] - min_3ptm)/(max_3ptm - min_3ptm)*(1/n_categories))
     normalized_stats.append((stats["REB"] - min_REB) / (max_REB - min_REB)*(1/n_categories))
 
     #---------------------------------------------------------------------------------------------------------------------------------------------
 
     #categories where I AM a chad
 
-
+    normalized_stats.append((stats["BLK"] - min_BLK) / (max_BLK - min_BLK)*(1/n_categories))
+    normalized_stats.append((stats["FG%"] - min_FG_percent) / (max_FG_percent - min_FG_percent)*(1/n_categories))
     normalized_stats.append(( stats["PF"]- min_PF) / (max_PF - min_PF)*(1/n_categories))
     normalized_stats.append((stats["A/T"] - min_AT) / (max_AT - min_AT)*(1/n_categories))
     normalized_stats.append((stats["STL"] - min_STL) / (max_STL - min_STL)*(1/n_categories)) 
-
-    
-    normalized_stats.append((stats["3PTM"] - min_3ptm)/(max_3ptm - min_3ptm)*(1/n_categories))
     normalized_stats.append((stats["3PT%"] - min_ThreePt_percent) / (max_ThreePt_percent - min_ThreePt_percent)*(1/n_categories))
 
     #---------------------------------------------------------------------------------------------------------------------------------------------
@@ -324,7 +321,7 @@ def normalizedScore(squad, min_max = False):
     if min_max:
 
         for i in range(12 - n_categories):
-            normalized_stats[i] = normalized_stats[i]/30
+            normalized_stats[i] = 0
         #normalized_stats[12 - n_categories] = normalized_stats[12 - n_categories]/10
     for i in range(len(normalized_stats)):
         normalized_stats[i] = min(normalized_stats[i],category_cap *(1/n_categories))
