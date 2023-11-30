@@ -15,7 +15,7 @@ def evaluateSquad(cur_squad, potential_squad):
         win_counter += battle(cur_avgs, avgs, category)
     return win_counter
 
-def geneticOptimization(players, population_size=12500, generations=100, mutation_rate= 0.80, crossover_rate=0.80, elitism_rate=0.05, min_max = False):
+def geneticOptimization(players, population_size=5000, generations=250, mutation_rate= 0.70, crossover_rate=0.80, elitism_rate=0.05, min_max = False):
 
     best_individual = None
     population = initializePopulation(players)
@@ -60,7 +60,7 @@ def geneticOptimization(players, population_size=12500, generations=100, mutatio
         population =  new_population[:]
         if(generation + 1)%1 == 0 or generation == 0:
             print(f"Generation: {generation + 1}")
-            print(f"best of this generation: {current_best_fitness} VS {best_fitness} -> Has length: {len(new_population[0])}")
+            print(f"best of this generation: {current_best_fitness} Overall best:{best_fitness}")
     '''
     print("getting the values for sorted population[0], population[0] and best_individual")
     for score in [sum(normalizedScore(sorted_population[0], True)), sum(normalizedScore(population[0])), sum(normalizedScore(best_individual))]:
@@ -259,7 +259,7 @@ def normalizedScore(squad, min_max = False):
     min_fgm = 5030.3 
     max_fgm = 6307.0
     min_3ptm = 1316.9999999999998
-    max_3ptm = 1800
+    max_3ptm = 1750
     min_ftm =  2302.4999999999995
     maX_ftm = 3240.9
 
@@ -271,9 +271,9 @@ def normalizedScore(squad, min_max = False):
     min_REB =  4258.9 
     max_REB = 5803.0# Assuming this is the upper limit for rebounds 
     min_AST = 3450.1
-    max_AST = 4120.7
+    max_AST = 4275
     min_STL = 829.9000000000001
-    max_STL = 950
+    max_STL = 960
     min_BLK = 642.6
     max_BLK = 789.0000000000002 # 889.9000000000002(if I get turner from Dunk :flushed:)
     min_AT =  2.037886716281323
@@ -285,37 +285,36 @@ def normalizedScore(squad, min_max = False):
     n_categories = 12
     category_cap = 1.00
     if min_max:
-        n_categories = 5
+        n_categories = 8
     #CATEGORIES i LITEARLLY CANNOT REACH THE MAX ON(RAN THE ALGORITHM only considering these categories and still couldnt beat everyone at it)
     normalized_stats.append((stats["PTS"] - min_Pts)/(max_Pts - min_Pts)*(1/n_categories))
-    normalized_stats.append((stats["FGM"] - min_fgm)/(max_fgm - min_fgm)*(1/n_categories))
     normalized_stats.append((stats["FTM"] - min_ftm)/(maX_ftm - min_ftm)*(1/n_categories))
-    normalized_stats.append((stats["AST"] - min_AST) / (max_AST - min_AST)*(1/n_categories))
-
+    normalized_stats.append((stats["FGM"] - min_fgm)/(max_fgm - min_fgm)*(1/n_categories))
+    normalized_stats.append((stats['BLK'] - min_BLK)/ (max_BLK - min_BLK))
 
     #---------------------------------------------------------------------------------------------------------------------------------------------
 
 
+    normalized_stats.append((stats["REB"] - min_REB) / (max_REB - min_REB)*(1/n_categories))
 
 
     #categories where I am CLOSE to reaching Max or barely beat/lose to the best opponent at this CAT
+    normalized_stats.append((stats["AST"] - min_AST) / (max_AST - min_AST)*(1/n_categories))
+    normalized_stats.append((stats["3PTM"] - min_3ptm)/(max_3ptm - min_3ptm)*(1/n_categories))
 
     #---------------------------------------------------------------------------------------------------------------------------------------------
-    normalized_stats.append((stats["3PTM"] - min_3ptm)/(max_3ptm - min_3ptm)*(1/n_categories))
 
 
 
 
 
     #categories where I AM a chad
-
-    normalized_stats.append((stats["REB"] - min_REB) / (max_REB - min_REB)*(1/n_categories))
     normalized_stats.append((stats["FG%"] - min_FG_percent) / (max_FG_percent - min_FG_percent)*(1/n_categories))
-    normalized_stats.append((stats["STL"] - min_STL) / (max_STL - min_STL)*(1/n_categories)) 
-    normalized_stats.append((stats['BLK'] - min_BLK)/ (max_BLK - min_BLK))
     normalized_stats.append((stats["3PT%"] - min_ThreePt_percent) / (max_ThreePt_percent - min_ThreePt_percent)*(1/n_categories))
+    normalized_stats.append((stats["STL"] - min_STL) / (max_STL - min_STL)*(1/n_categories)) 
     normalized_stats.append((stats["PF"]- min_PF) / (max_PF - min_PF)*(1/n_categories))
     normalized_stats.append((stats["A/T"] - min_AT) / (max_AT - min_AT)*(1/n_categories))
+
 
     #---------------------------------------------------------------------------------------------------------------------------------------------
 
