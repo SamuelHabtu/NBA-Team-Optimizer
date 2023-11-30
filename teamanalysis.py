@@ -15,7 +15,7 @@ def evaluateSquad(cur_squad, potential_squad):
         win_counter += battle(cur_avgs, avgs, category)
     return win_counter
 
-def geneticOptimization(players, population_size=5000, generations=250, mutation_rate= 0.70, crossover_rate=0.80, elitism_rate=0.05, min_max = False):
+def geneticOptimization(players, population_size=1500, generations=500, mutation_rate= 0.7, crossover_rate=0.95, elitism_rate=0.05, min_max = False):
 
     best_individual = None
     population = initializePopulation(players)
@@ -23,10 +23,15 @@ def geneticOptimization(players, population_size=5000, generations=250, mutation
     fitness_scores = []
     selected_parents = []
     num_elites = int(elitism_rate * population_size)
-    for generation in range(generations):
+    stagnation_counter = 0
+    generation = 0
+    while(stagnation_counter <= generations):
+
         fitness_scores = [sum(normalizedScore(individual, min_max)) for individual in population]
-        selected_parents = [tournamentSelection(population,narrow_categories=min_max) for _ in range(population_size)]
         sorted_population = [x for _, x in sorted(zip(fitness_scores, population), key=lambda pair: pair[0], reverse=True)]
+        #elites wont have to compete, no mutations or crossover for them either >:^)
+        selected_parents = [tournamentSelection(sorted_population[num_elites:],narrow_categories=min_max) for _ in range(population_size)]
+
         #always yoink the best lads
         new_population = sorted_population[:num_elites].copy()
 
@@ -48,19 +53,25 @@ def geneticOptimization(players, population_size=5000, generations=250, mutation
         current_best_fitness = sum(normalizedScore(sorted_population[0], min_max=narrow_cats))
         if current_best_fitness > best_fitness:
             print(f"Changing up best individual because: {current_best_fitness} > {best_fitness}")
+            if current_best_fitness - best_fitness >= 0.01:
+                stagnation_counter = 0
+            else:
+                stagnation_counter += 1
             print(f"new best team with fitness: {current_best_fitness}")
             for player in sorted_population[0]:
                 print(player['Name'])
             print("------------------------------------------------------------")
             best_fitness = current_best_fitness
             best_individual = sorted_population[0].copy()
-
+        else:
+            stagnation_counter += 1
         #add the best individual to the next generation
         new_population.extend([best_individual])
         population =  new_population[:]
-        if(generation + 1)%1 == 0 or generation == 0:
+        if(generation + 1)%100 == 0 or generation == 0:
             print(f"Generation: {generation + 1}")
             print(f"best of this generation: {current_best_fitness} Overall best:{best_fitness}")
+        generation += 1
     '''
     print("getting the values for sorted population[0], population[0] and best_individual")
     for score in [sum(normalizedScore(sorted_population[0], True)), sum(normalizedScore(population[0])), sum(normalizedScore(best_individual))]:
@@ -265,15 +276,15 @@ def normalizedScore(squad, min_max = False):
 
     #the handsome non dump stats below:
     min_FG_percent =0.47018040852840315
-    max_FG_percent =  0.6
+    max_FG_percent =  0.492
     min_ThreePt_percent =  0.35447058190235237
-    max_ThreePt_percent =  0.385#0.9361702127659577
+    max_ThreePt_percent =   0.39#0.9361702127659577
     min_REB =  4258.9 
     max_REB = 5803.0# Assuming this is the upper limit for rebounds 
     min_AST = 3450.1
     max_AST = 4275
     min_STL = 829.9000000000001
-    max_STL = 960
+    max_STL = 930
     min_BLK = 642.6
     max_BLK = 789.0000000000002 # 889.9000000000002(if I get turner from Dunk :flushed:)
     min_AT =  2.037886716281323
@@ -285,38 +296,33 @@ def normalizedScore(squad, min_max = False):
     n_categories = 12
     category_cap = 1.00
     if min_max:
-        n_categories = 8
-    #CATEGORIES i LITEARLLY CANNOT REACH THE MAX ON(RAN THE ALGORITHM only considering these categories and still couldnt beat everyone at it)
+        n_categories = 6
+
     normalized_stats.append((stats["PTS"] - min_Pts)/(max_Pts - min_Pts)*(1/n_categories))
     normalized_stats.append((stats["FTM"] - min_ftm)/(maX_ftm - min_ftm)*(1/n_categories))
     normalized_stats.append((stats["FGM"] - min_fgm)/(max_fgm - min_fgm)*(1/n_categories))
-    normalized_stats.append((stats['BLK'] - min_BLK)/ (max_BLK - min_BLK))
+ 
+    normalized_stats.append((stats["AST"] - min_AST) / (max_AST - min_AST)*(1/n_categories))
+    normalized_stats.append((stats["3PTM"] - min_3ptm)/(max_3ptm - min_3ptm)*(1/n_categories))
+    normalized_stats.append((stats["STL"] - min_STL) / (max_STL - min_STL)*(1/n_categories)) 
 
-    #---------------------------------------------------------------------------------------------------------------------------------------------
-
+    normalized_stats.append((stats["3PT%"] - min_ThreePt_percent) / (max_ThreePt_percent - min_ThreePt_percent)*(1/n_categories))
 
     normalized_stats.append((stats["REB"] - min_REB) / (max_REB - min_REB)*(1/n_categories))
 
 
-    #categories where I am CLOSE to reaching Max or barely beat/lose to the best opponent at this CAT
-    normalized_stats.append((stats["AST"] - min_AST) / (max_AST - min_AST)*(1/n_categories))
-    normalized_stats.append((stats["3PTM"] - min_3ptm)/(max_3ptm - min_3ptm)*(1/n_categories))
-
-    #---------------------------------------------------------------------------------------------------------------------------------------------
-
-
-
-
-
-    #categories where I AM a chad
-    normalized_stats.append((stats["FG%"] - min_FG_percent) / (max_FG_percent - min_FG_percent)*(1/n_categories))
-    normalized_stats.append((stats["3PT%"] - min_ThreePt_percent) / (max_ThreePt_percent - min_ThreePt_percent)*(1/n_categories))
-    normalized_stats.append((stats["STL"] - min_STL) / (max_STL - min_STL)*(1/n_categories)) 
     normalized_stats.append((stats["PF"]- min_PF) / (max_PF - min_PF)*(1/n_categories))
+
+    normalized_stats.append((stats['BLK'] - min_BLK)/ (max_BLK - min_BLK))
+
+    normalized_stats.append((stats["FG%"] - min_FG_percent) / (max_FG_percent - min_FG_percent)*(1/n_categories))
     normalized_stats.append((stats["A/T"] - min_AT) / (max_AT - min_AT)*(1/n_categories))
 
+ 
 
-    #---------------------------------------------------------------------------------------------------------------------------------------------
+
+
+    
 
 
 
@@ -327,10 +333,12 @@ def normalizedScore(squad, min_max = False):
     if min_max:
 
         for i in range(12 - n_categories):
-            normalized_stats[i] = 0
-        #normalized_stats[12 - n_categories] = normalized_stats[12 - n_categories]/10
+            normalized_stats[i] = normalized_stats[i]*0
+        #normalized_stats[12 - n_categories] = normalized_stats[12 - n_categories]/2
+    #let's enforce our cap >:^)
     for i in range(len(normalized_stats)):
         normalized_stats[i] = min(normalized_stats[i],category_cap *(1/n_categories))
+
 
     
     return normalized_stats
