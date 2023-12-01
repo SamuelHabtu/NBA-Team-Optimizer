@@ -15,10 +15,10 @@ def evaluateSquad(cur_squad, potential_squad):
         win_counter += battle(cur_avgs, avgs, category)
     return win_counter
 
-def geneticOptimization(players, population_size=1500, generations=500, mutation_rate= 0.7, crossover_rate=0.95, elitism_rate=0.05, min_max = False):
+def geneticOptimization(players, population_size=2500, generations=100, mutation_rate= 0.7, crossover_rate=0.95, elitism_rate=0.05, min_max = False):
 
     best_individual = None
-    population = initializePopulation(players)
+    population = initializePopulation(players, population_size)
     best_fitness = float("-inf")
     fitness_scores = []
     selected_parents = []
@@ -296,7 +296,7 @@ def normalizedScore(squad, min_max = False):
     n_categories = 12
     category_cap = 1.00
     if min_max:
-        n_categories = 5
+        n_categories = 12
 
     normalized_stats.append((stats["PTS"] - min_Pts)/(max_Pts - min_Pts)*(1/n_categories))
     normalized_stats.append((stats["FTM"] - min_ftm)/(maX_ftm - min_ftm)*(1/n_categories))

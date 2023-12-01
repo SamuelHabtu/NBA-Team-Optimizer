@@ -72,15 +72,16 @@ def hillClimbSingleRun(players, max_iterations):
 def geneticOptimization(players, population_size=10000, generations=100, mutation_rate= 0.5, crossover_rate=0.6, elitism_rate=0.05, min_max = False):
 
     best_individual = None
-    population = initializePopulation(players)
+    population = initializePopulation(players, population_size)
     best_fitness = float("-inf")
     fitness_scores = []
     selected_parents = []
     num_elites = int(elitism_rate * population_size)
     for generation in range(generations):
         fitness_scores = [evaluateSquad(individual) for individual in population]
-        selected_parents = [tournamentSelection(population) for _ in range(population_size)]
         sorted_population = [x for _, x in sorted(zip(fitness_scores, population), key=lambda pair: pair[0], reverse=True)]
+        selected_parents = [tournamentSelection(sorted_population[num_elites:]) for _ in range(population_size)]
+
         #always yoink the best lads
         new_population = sorted_population[:num_elites].copy()
 
