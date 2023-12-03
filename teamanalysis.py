@@ -280,18 +280,17 @@ def normalizedScore(squad, min_max = False):
     min_ThreePt_percent =  0.35447058190235237
     max_ThreePt_percent =   0.39#0.9361702127659577
     min_REB =  4258.9 
-    max_REB =  5803.0# Assuming this is the upper limit for rebounds 
+    max_REB =  4800#5803.0# Assuming this is the upper limit for rebounds 
     min_AST = 3450.1
     max_AST = 4275
     min_STL = 829.9000000000001
     max_STL = 958
     min_BLK = 642.6
-    max_BLK = 690.0000000000002 # 889.9000000000002(if I get turner from Dunk :flushed:)
+    max_BLK = 690.0000000000002 # 889.9000000000002
     min_AT =  2.037886716281323
     max_AT = 2.08
     min_PF =  -2158.2000000000003
     max_PF =  -1950.900000000000001
-    # Normalize each statistic, each stat is also weighted by 1/Number of categories
     # Normalize each statistic, each stat is also weighted by 1/Number of categories
     normalized_stats = []
     n_categories = 12
@@ -323,7 +322,7 @@ def normalizedScore(squad, min_max = False):
 
         for i in range(12 - n_categories):
             normalized_stats[i] = normalized_stats[i]*0
-        normalized_stats[12 - n_categories] = normalized_stats[12 - n_categories]/2
+        #normalized_stats[12 - n_categories] = normalized_stats[12 - n_categories]/2
 
     #let's enforce our cap >:^)
     for i in range(len(normalized_stats)):
