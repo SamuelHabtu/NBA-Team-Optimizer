@@ -280,11 +280,11 @@ def normalizedScore(squad, min_max = False):
     min_ThreePt_percent =  0.35447058190235237
     max_ThreePt_percent =   0.39#0.9361702127659577
     min_REB =  4258.9 
-    max_REB =  4800#5803.0# Assuming this is the upper limit for rebounds 
+    max_REB =  5200#5803.0# Assuming this is the upper limit for rebounds 
     min_AST = 3450.1
     max_AST = 4275
     min_STL = 829.9000000000001
-    max_STL = 958
+    max_STL = 956
     min_BLK = 642.6
     max_BLK = 690.0000000000002 # 889.9000000000002
     min_AT =  2.037886716281323
@@ -296,7 +296,7 @@ def normalizedScore(squad, min_max = False):
     n_categories = 12
     category_cap = 1.0
     if min_max:
-        n_categories = 7
+        n_categories = 8
 #dump categories
     normalized_stats.append((stats["PTS"] - min_Pts)/(max_Pts - min_Pts)*(1/n_categories))
     normalized_stats.append((stats["FTM"] - min_ftm)/(maX_ftm - min_ftm)*(1/n_categories))
