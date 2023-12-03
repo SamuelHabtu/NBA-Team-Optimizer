@@ -15,7 +15,7 @@ def evaluateSquad(cur_squad, potential_squad):
         win_counter += battle(cur_avgs, avgs, category)
     return win_counter
 
-def geneticOptimization(players, population_size=1000, generations=200, mutation_rate= 0.6, crossover_rate=0.8, elitism_rate=0.05, min_max = False):
+def geneticOptimization(players, population_size=2500, generations=300, mutation_rate= 0.6, crossover_rate=0.8, elitism_rate=0.05, min_max = False):
 
     best_individual = None
     population = initializePopulation(players, population_size)
@@ -270,7 +270,7 @@ def normalizedScore(squad, min_max = False):
     min_fgm = 5030.3 
     max_fgm = 6307.0
     min_3ptm = 1316.9999999999998
-    max_3ptm = 1750
+    max_3ptm = 1723.0
     min_ftm =  2302.4999999999995
     maX_ftm = 3240.9
 
@@ -280,7 +280,7 @@ def normalizedScore(squad, min_max = False):
     min_ThreePt_percent =  0.35447058190235237
     max_ThreePt_percent =   0.39#0.9361702127659577
     min_REB =  4258.9 
-    max_REB = 5803.0# Assuming this is the upper limit for rebounds 
+    max_REB =  5803.0# Assuming this is the upper limit for rebounds 
     min_AST = 3450.1
     max_AST = 4275
     min_STL = 829.9000000000001
@@ -292,40 +292,28 @@ def normalizedScore(squad, min_max = False):
     min_PF =  -2158.2000000000003
     max_PF =  -1950.900000000000001
     # Normalize each statistic, each stat is also weighted by 1/Number of categories
+    # Normalize each statistic, each stat is also weighted by 1/Number of categories
     normalized_stats = []
     n_categories = 12
-    category_cap = 1
+    category_cap = 1.0
     if min_max:
-        n_categories = 6
-#cant max out even if solo category
+        n_categories = 7
+#dump categories
     normalized_stats.append((stats["PTS"] - min_Pts)/(max_Pts - min_Pts)*(1/n_categories))
     normalized_stats.append((stats["FTM"] - min_ftm)/(maX_ftm - min_ftm)*(1/n_categories))
     normalized_stats.append((stats["FGM"] - min_fgm)/(max_fgm - min_fgm)*(1/n_categories))
     normalized_stats.append((stats["AST"] - min_AST) / (max_AST - min_AST)*(1/n_categories))
-
-#can actually max out
-
     normalized_stats.append((stats["3PTM"] - min_3ptm)/(max_3ptm - min_3ptm)*(1/n_categories))
-    normalized_stats.append((stats["REB"] - min_REB) / (max_REB - min_REB)*(1/n_categories))
 
-
-    #category used in calculation
+#category used in calculation
+    
+    normalized_stats.append((stats["REB"] - min_REB) / (max_REB - min_REB)*(1/n_categories)) 
     normalized_stats.append((stats["STL"] - min_STL) / (max_STL - min_STL)*(1/n_categories)) 
-    normalized_stats.append((stats["PF"]- min_PF) / (max_PF - min_PF)*(1/n_categories))
-    normalized_stats.append((stats["A/T"] - min_AT) / (max_AT - min_AT)*(1/n_categories))
-    normalized_stats.append((stats["FG%"] - min_FG_percent) / (max_FG_percent - min_FG_percent)*(1/n_categories))
     normalized_stats.append((stats["3PT%"] - min_ThreePt_percent) / (max_ThreePt_percent - min_ThreePt_percent)*(1/n_categories))
     normalized_stats.append((stats['BLK'] - min_BLK)/ (max_BLK - min_BLK))
-
-
-
-
-
-
-
-    
-
-
+    normalized_stats.append((stats["FG%"] - min_FG_percent) / (max_FG_percent - min_FG_percent)*(1/n_categories))
+    normalized_stats.append((stats["PF"]- min_PF) / (max_PF - min_PF)*(1/n_categories))
+    normalized_stats.append((stats["A/T"] - min_AT) / (max_AT - min_AT)*(1/n_categories))
 
     best_stats = []
     #weight everything AND then we also cap the values at 15% higher because realistically 10% should be a good enough margin
@@ -335,7 +323,7 @@ def normalizedScore(squad, min_max = False):
 
         for i in range(12 - n_categories):
             normalized_stats[i] = normalized_stats[i]*0
-        #normalized_stats[12 - n_categories] = normalized_stats[12 - n_categories]
+        normalized_stats[12 - n_categories] = normalized_stats[12 - n_categories]/2
 
     #let's enforce our cap >:^)
     for i in range(len(normalized_stats)):
