@@ -265,41 +265,44 @@ def normalizedScore(squad, min_max = False):
 
     stats = averages(squad)
     #MY USUAL DUMP STATS: 
-    min_Pts = 29069.800000000003
-    max_Pts = 35470.0
-    min_fgm = 5030.3 
-    max_fgm = 6307.0
-    min_3ptm = 1316.9999999999998
-    max_3ptm = 1723.0
-    min_ftm =  2302.4999999999995
-    maX_ftm = 3240.9
+    min_Pts = 600
+    max_Pts = 930
+    min_fgm = 100
+    max_fgm = 169
+    min_3ptm = 30
+    max_3ptm = 70
+    min_ftm =  50
+    maX_ftm = 60
 
     #the handsome non dump stats below:
     min_FG_percent =0.47018040852840315
-    max_FG_percent =  0.492
+    max_FG_percent =  0.5
     min_ThreePt_percent =  0.35447058190235237
     max_ThreePt_percent =   0.39#0.9361702127659577
-    min_REB =  4258.9 
-    max_REB =  4700#5803.0# Assuming this is the upper limit for rebounds 
-    min_AST = 3450.1
-    max_AST = 4275
-    min_STL = 829.9000000000001
-    max_STL = 956
-    min_BLK = 642.6
-    max_BLK = 690.0000000000002 # 889.9000000000002
-    min_AT =  2.037886716281323
+    min_REB =  120
+    max_REB =  140#5803.0# Assuming this is the upper limit for rebounds 
+    min_AST = 30
+    max_AST = 80
+    min_STL = 15
+    max_STL = 20
+    min_BLK = 10
+    max_BLK = 20 # 889.9000000000002
+    min_AT =  2.0
     max_AT = 2.08
-    min_PF =  -2158.2000000000003
-    max_PF =  -1950.900000000000001
+    min_PF =  -124.3
+    max_PF =  -50
     # Normalize each statistic, each stat is also weighted by 1/Number of categories
     normalized_stats = []
     n_categories = 12
     category_cap = 1.0
     if min_max:
-        n_categories = 7
-#dump categories
+        n_categories = 11
+#dump categoriesz
+    normalized_stats.append((stats["REB"] - min_REB) / (max_REB - min_REB)*(1/n_categories)) 
+
+    normalized_stats.append((stats["PF"]- min_PF) / (max_PF - min_PF)*(1/n_categories))
+
     normalized_stats.append((stats["PTS"] - min_Pts)/(max_Pts - min_Pts)*(1/n_categories))
-    normalized_stats.append((stats["FTM"] - min_ftm)/(maX_ftm - min_ftm)*(1/n_categories))
     normalized_stats.append((stats["FGM"] - min_fgm)/(max_fgm - min_fgm)*(1/n_categories))
     normalized_stats.append((stats["AST"] - min_AST) / (max_AST - min_AST)*(1/n_categories))
 
@@ -309,11 +312,9 @@ def normalizedScore(squad, min_max = False):
     normalized_stats.append((stats["3PTM"] - min_3ptm)/(max_3ptm - min_3ptm)*(1/n_categories))
 
     
-    normalized_stats.append((stats["REB"] - min_REB) / (max_REB - min_REB)*(1/n_categories)) 
     normalized_stats.append((stats["STL"] - min_STL) / (max_STL - min_STL)*(1/n_categories)) 
     normalized_stats.append((stats["3PT%"] - min_ThreePt_percent) / (max_ThreePt_percent - min_ThreePt_percent)*(1/n_categories))
     normalized_stats.append((stats["FG%"] - min_FG_percent) / (max_FG_percent - min_FG_percent)*(1/n_categories))
-    normalized_stats.append((stats["PF"]- min_PF) / (max_PF - min_PF)*(1/n_categories))
     normalized_stats.append((stats["A/T"] - min_AT) / (max_AT - min_AT)*(1/n_categories))
 
     best_stats = []
@@ -349,7 +350,7 @@ def matchUp(opponent, squad):
     print(f"is My Squad better? : {score > 6} , Expected Score of: {score}-{12- score}")
 
 
-def extractPlayers(filename = "freeagents.csv"):
+def extractPlayers(filename = "weeklyFAs.csv"):
     players = []
     with open(filename, newline = '') as csvfile:
         csvdata = csv.reader(csvfile, delimiter=',', quotechar='|')
@@ -416,7 +417,7 @@ def weeklyFreeAgents():
 
 def main():
     narrow_Categories = True
-    roster = extractPlayers("currentroster.csv")  
+    roster = extractPlayers("weeklyroster.csv")  
     roster = bruteForce(roster, 15, narrow_Categories)
     players = extractPlayers()
     print("Optimized version of our roster")
@@ -424,11 +425,11 @@ def main():
         print(player['Name'])
     print(f"With a score of {sum(normalizedScore(roster, narrow_Categories))}")
     print("-"*30)
-    optimized_squad = geneticOptimization(players, min_max=narrow_Categories)
+    optimized_squad = roster#geneticOptimization(players, min_max=narrow_Categories)
+    opp = "Slim reaper weekly.csv"
     print(f"Now let's do some theoretical matchups:")
-    for opp in ["Slim reaper.csv", "Jimmy's Buckets.csv", "Dunk Daddies.csv", "Year of the Timberwolf.csv"]:
+    matchUp("Slim reaper weekly.csv",optimized_squad)
 
-        matchUp(opp, optimized_squad)
     print("---------------------------------------------------------------------------------------------------")
     print("Now let's compare our optimized squad to our bruteforced roster -> is it worth getting free agents?")
     optimized_avg = averages(optimized_squad)
