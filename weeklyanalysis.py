@@ -418,7 +418,7 @@ def weeklyFreeAgents():
 def main():
     narrow_Categories = True
     roster = extractPlayers("weeklyroster.csv")  
-    roster = bruteForce(roster, 15, narrow_Categories)
+    roster = bruteForce(roster, 16, narrow_Categories)
     players = extractPlayers()
     print("Optimized version of our roster")
     for player in roster:
