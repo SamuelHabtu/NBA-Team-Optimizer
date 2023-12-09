@@ -7,7 +7,7 @@ n_starts = 0
 def rankPlayers(min_max = True):
     
     players = extractPlayers()
-    individual_contribution = [sum(normalizedScore([individual]*15, min_max)) for individual in players]
+    individual_contribution = [sum(normalizedScore([individual], min_max)) for individual in players]
     print()
     ranked_players = [x for _, x in sorted(zip(individual_contribution, players), key=lambda pair: pair[0], reverse=True)]
     return ranked_players
@@ -304,7 +304,7 @@ def normalizedScore(squad, min_max = False):
     n_categories = 12
     category_cap = 1.01
     if min_max:
-        n_categories = 8
+        n_categories = 1
 #dump categories
     normalized_stats.append((stats["FGM"] - min_fgm)/(max_fgm - min_fgm)*(1/n_categories))
     normalized_stats.append((stats["PTS"] - min_Pts)/(max_Pts - min_Pts)*(1/n_categories))
@@ -316,7 +316,6 @@ def normalizedScore(squad, min_max = False):
     normalized_stats.append((stats["REB"] - min_REB) / (max_REB - min_REB)*(1/n_categories)) 
 
 
-<<<<<<< HEAD
     normalized_stats.append((stats['BLK'] - min_BLK)/ (max_BLK - min_BLK))
 
 
@@ -325,13 +324,11 @@ def normalizedScore(squad, min_max = False):
 
 
     
-=======
     normalized_stats.append((stats["REB"] - min_REB) / (max_REB - min_REB)*(1/n_categories)) 
 
 
 
 #category used in calculation
->>>>>>> a20d1660e8d00eccfe48937947580e7c0224d266
     normalized_stats.append((stats["STL"] - min_STL) / (max_STL - min_STL)*(1/n_categories)) 
 
     normalized_stats.append((stats["FG%"] - min_FG_percent) / (max_FG_percent - min_FG_percent)*(1/n_categories))
@@ -442,7 +439,7 @@ def weeklyFreeAgents():
 
 def main():
     narrow_Categories = True
-    ranked_players = rankPlayers()
+    ranked_players = rankPlayers(narrow_Categories)
     print("Players Ranked and their individual contribution:")
     for player in ranked_players:
         print(player)
