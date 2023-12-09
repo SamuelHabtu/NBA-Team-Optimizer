@@ -4,6 +4,14 @@ import random
 import multiprocessing
 n_starts = 0
 
+def rankPlayers(min_max = True):
+    
+    players = extractPlayers()
+    individual_contribution = [sum(normalizedScore([individual]*15, min_max)) for individual in players]
+    print()
+    ranked_players = [x for _, x in sorted(zip(individual_contribution, players), key=lambda pair: pair[0], reverse=True)]
+    return ranked_players
+
 def randomStart(players, teamsize = 15):
     return random.sample(players,teamsize)
 
@@ -265,47 +273,49 @@ def normalizedScore(squad, min_max = False):
 
     stats = averages(squad)
     #MY USUAL DUMP STATS: 
-    min_Pts = 29196.1
-    max_Pts = 37518.1
-    min_fgm = 5474.1
-    max_fgm = 6634.1
-    min_3ptm = 1301.7
-    max_3ptm = 1729.7
-    min_ftm =  2278.3
-    maX_ftm = 3748.1
+    min_Pts = 27522.0
+    max_Pts = 34444.0
+    min_fgm = 5129.0
+    max_fgm = 6132.0
+    min_3ptm = 1400.1
+    max_3ptm = 1688.8
+    min_ftm =  2093.7000000000003
+    maX_ftm = 3322.2000000000003
 
     #the handsome non dump stats below:
-    min_FG_percent =0.46854
-    max_FG_percent =  0.4917
-    min_ThreePt_percent =  0.3604
-    max_ThreePt_percent =   0.3884#0.9361702127659577
-    min_REB =  4625.1
-    max_REB =  6082.1
-    min_AST = 3546.6
-    max_AST = 4351.9
-    min_STL = 789.8
-    max_STL = 951.1
-    min_BLK = 595.7
-    max_BLK = 681.9000000000001
-    min_AT =  1.96
-    max_AT = 2.12
-    min_PF =  -2141.5
-    max_PF =  -1981.7
+    min_FG_percent =0.4680916030534351
+    max_FG_percent =  0.4969110035064285
+    min_ThreePt_percent =  0.36287005192528154
+    max_ThreePt_percent =  0.38920660491341114
+    min_REB =  4600.0
+    max_REB =  5524.0
+    min_AST = 3329.9
+    max_AST = 4068.2
+    min_STL = 765.4999999999999
+    max_STL = 932.6000000000003
+    min_BLK = 610.5
+    max_BLK = 718.8000000000001
+    min_AT =  1.997520314538518
+    max_AT = 2.125717081989732
+    min_PF =  -2112.8
+    max_PF =  -1812.6
     # Normalize each statistic, each stat is also weighted by 1/Number of categories
     normalized_stats = []
     n_categories = 12
     category_cap = 1.01
     if min_max:
-        n_categories = 6
+        n_categories = 8
 #dump categories
     normalized_stats.append((stats["FGM"] - min_fgm)/(max_fgm - min_fgm)*(1/n_categories))
-    normalized_stats.append((stats["AST"] - min_AST) / (max_AST - min_AST)*(1/n_categories))
     normalized_stats.append((stats["PTS"] - min_Pts)/(max_Pts - min_Pts)*(1/n_categories))
     normalized_stats.append((stats["FTM"] - min_ftm)/(maX_ftm - min_ftm)*(1/n_categories))
+    normalized_stats.append((stats["3PTM"] - min_3ptm)/(max_3ptm - min_3ptm)*(1/n_categories))
+    normalized_stats.append((stats["AST"] - min_AST) / (max_AST - min_AST)*(1/n_categories))
+
+    normalized_stats.append((stats["REB"] - min_REB) / (max_REB - min_REB)*(1/n_categories)) 
 
     normalized_stats.append((stats["FG%"] - min_FG_percent) / (max_FG_percent - min_FG_percent)*(1/n_categories))
 
-    normalized_stats.append((stats["3PTM"] - min_3ptm)/(max_3ptm - min_3ptm)*(1/n_categories))
     normalized_stats.append((stats['BLK'] - min_BLK)/ (max_BLK - min_BLK))
 
 
@@ -314,7 +324,6 @@ def normalizedScore(squad, min_max = False):
 
 
     
-    normalized_stats.append((stats["REB"] - min_REB) / (max_REB - min_REB)*(1/n_categories)) 
     normalized_stats.append((stats["STL"] - min_STL) / (max_STL - min_STL)*(1/n_categories)) 
     normalized_stats.append((stats["3PT%"] - min_ThreePt_percent) / (max_ThreePt_percent - min_ThreePt_percent)*(1/n_categories))
     normalized_stats.append((stats["PF"]- min_PF) / (max_PF - min_PF)*(1/n_categories))
@@ -378,19 +387,16 @@ def extractPlayers(filename = "freeagents.csv"):
             temp_player["STL"] = float(player_info[11 + size_delta])
             temp_player["BLK"] = float(player_info[12 + size_delta])
             temp_player["A/T"] = float(player_info[13 + size_delta])
+            if not temp_player["A/T"]:
+                temp_player["A/T"] += 1
             temp_player["TO"] = temp_player["AST"]/temp_player["A/T"]
             temp_player["PF"] = float(player_info[14 + size_delta])
             players.append(temp_player)
 
     return players
 
-def greedyAlgo(players, team_size = 15):
-    result = []
-    for player in players:
-        result.append((player,sum(normalizedScore([player]))))
-    result = sorted(result, key = lambda info: info[1], reverse= True)
-    for i in range(team_size):
-        result[i] = result[i][0]
+def greedyAlgo(players, team_size = 15, min_max = True):
+    result = rankPlayers(min_max)
     return result[:team_size]
 
 def freeAgents():
@@ -418,8 +424,14 @@ def weeklyFreeAgents():
     print("---------------------------------------------------------------------")
     return hill_squad    
 
+
+
 def main():
     narrow_Categories = True
+    ranked_players = rankPlayers()
+    print("Players Ranked and their individual contribution:")
+    for player in ranked_players:
+        print(player)
     roster = extractPlayers("currentroster.csv")  
     roster = bruteForce(roster, 15, narrow_Categories)
     players = extractPlayers()
