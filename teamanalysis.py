@@ -224,19 +224,24 @@ def averages(team):
         total_to += player["TO"]
         total_pf += player["PF"]
 
-    if not total_3pa:
-        total_3pa = float("0.000000000000000002")
     averages["PTS"] = total_pts
     averages["FGM"] = total_fgm
     averages["3PTM"] = total_3pm
     averages["FG%"] = total_fgm/total_fga
-    averages["3PT%"] = total_3pm/total_3pa
+    if total_3pa:
+        averages["3PT%"] = total_3pm/total_3pa
+    else:
+        averages["3PT%"] = 0
     averages["FTM"] = total_ftm
     averages["REB"] = total_reb#/len(team)
     averages["AST"] = total_ast#/len(team)
     averages["STL"] = total_stl#/len(team)
     averages["BLK"] = total_blk#/len(team)
-    averages["A/T"] = total_ast/total_to
+    if total_to:
+        averages["A/T"] = total_ast/total_to
+    else:
+        averages["A/T"] = total_ast
+
     averages["PF"] = -total_pf#/len(team) 
     
     return averages
@@ -302,42 +307,29 @@ def normalizedScore(squad, min_max = False):
     # Normalize each statistic, each stat is also weighted by 1/Number of categories
     normalized_stats = []
     n_categories = 12
-    category_cap = 1.01
+    category_cap = 1.05
     if min_max:
-        n_categories = 1
+        n_categories = 6
 #dump categories
-    normalized_stats.append((stats["FGM"] - min_fgm)/(max_fgm - min_fgm)*(1/n_categories))
     normalized_stats.append((stats["PTS"] - min_Pts)/(max_Pts - min_Pts)*(1/n_categories))
-    normalized_stats.append((stats["AST"] - min_AST) / (max_AST - min_AST)*(1/n_categories))
+    normalized_stats.append((stats["FGM"] - min_fgm)/(max_fgm - min_fgm)*(1/n_categories))
     normalized_stats.append((stats["FTM"] - min_ftm)/(maX_ftm - min_ftm)*(1/n_categories))
-    normalized_stats.append((stats["3PTM"] - min_3ptm)/(max_3ptm - min_3ptm)*(1/n_categories))
-    normalized_stats.append((stats["AST"] - min_AST) / (max_AST - min_AST)*(1/n_categories))
-
-    normalized_stats.append((stats["REB"] - min_REB) / (max_REB - min_REB)*(1/n_categories)) 
-
-
-    normalized_stats.append((stats['BLK'] - min_BLK)/ (max_BLK - min_BLK))
-
-
-#category used in calculation
-
-
-
-    
-    normalized_stats.append((stats["REB"] - min_REB) / (max_REB - min_REB)*(1/n_categories)) 
 
 
 
 #category used in calculation
     normalized_stats.append((stats["STL"] - min_STL) / (max_STL - min_STL)*(1/n_categories)) 
 
-    normalized_stats.append((stats["FG%"] - min_FG_percent) / (max_FG_percent - min_FG_percent)*(1/n_categories))
     normalized_stats.append((stats["3PTM"] - min_3ptm)/(max_3ptm - min_3ptm)*(1/n_categories))
+    normalized_stats.append((stats["AST"] - min_AST) / (max_AST - min_AST)*(1/n_categories))
 
-    normalized_stats.append((stats['BLK'] - min_BLK)/ (max_BLK - min_BLK))
-    normalized_stats.append((stats["PF"]- min_PF) / (max_PF - min_PF)*(1/n_categories))
-    normalized_stats.append((stats["A/T"] - min_AT) / (max_AT - min_AT)*(1/n_categories))
+    normalized_stats.append((stats['BLK'] - min_BLK)/ (max_BLK - min_BLK)*(1/n_categories))
+
+    normalized_stats.append((stats["REB"] - min_REB) / (max_REB - min_REB)*(1/n_categories)) 
     normalized_stats.append((stats["3PT%"] - min_ThreePt_percent) / (max_ThreePt_percent - min_ThreePt_percent)*(1/n_categories))
+    normalized_stats.append((stats["FG%"] - min_FG_percent) / (max_FG_percent - min_FG_percent)*(1/n_categories))
+    normalized_stats.append((stats["A/T"] - min_AT) / (max_AT - min_AT)*(1/n_categories))
+    normalized_stats.append((stats["PF"]- min_PF) / (max_PF - min_PF)*(1/n_categories))
 
 
     best_stats = []
@@ -438,6 +430,7 @@ def weeklyFreeAgents():
 
 
 def main():
+
     narrow_Categories = True
     ranked_players = rankPlayers(narrow_Categories)
     print("Players Ranked and their individual contribution:")
@@ -471,5 +464,6 @@ def main():
     ten_man = bruteForce(optimized_squad, 10)
     for player in ten_man:
         print(player['Name'])
+    
 if __name__ == '__main__':
     main()
