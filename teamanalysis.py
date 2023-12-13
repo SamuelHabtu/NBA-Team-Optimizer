@@ -7,8 +7,7 @@ n_starts = 0
 def rankPlayers(min_max = True):
     
     players = extractPlayers()
-    individual_contribution = [sum(normalizedScore([individual], min_max)) for individual in players]
-    print()
+    individual_contribution = [sum(normalizedScore([individual]*15, min_max)) for individual in players]
     ranked_players = [x for _, x in sorted(zip(individual_contribution, players), key=lambda pair: pair[0], reverse=True)]
     return ranked_players
 
@@ -23,7 +22,7 @@ def evaluateSquad(cur_squad, potential_squad):
         win_counter += battle(cur_avgs, avgs, category)
     return win_counter
 
-def geneticOptimization(players, population_size=2500, generations=300, mutation_rate= 0.7, crossover_rate=0.8, elitism_rate=0.05, min_max = False):
+def geneticOptimization(players, population_size=200, generations=500, mutation_rate= 0.7, crossover_rate=0.8, elitism_rate=0.05, min_max = False):
 
     best_individual = None
     population = initializePopulation(players, population_size)
@@ -309,27 +308,30 @@ def normalizedScore(squad, min_max = False):
     n_categories = 12
     category_cap = 1.05
     if min_max:
-        n_categories = 6
+        n_categories = 5
 #dump categories
     normalized_stats.append((stats["PTS"] - min_Pts)/(max_Pts - min_Pts)*(1/n_categories))
     normalized_stats.append((stats["FGM"] - min_fgm)/(max_fgm - min_fgm)*(1/n_categories))
     normalized_stats.append((stats["FTM"] - min_ftm)/(maX_ftm - min_ftm)*(1/n_categories))
+    normalized_stats.append((stats["3PTM"] - min_3ptm)/(max_3ptm - min_3ptm)*(1/n_categories))
 
 
 
 #category used in calculation
-    normalized_stats.append((stats["STL"] - min_STL) / (max_STL - min_STL)*(1/n_categories)) 
-
-    normalized_stats.append((stats["3PTM"] - min_3ptm)/(max_3ptm - min_3ptm)*(1/n_categories))
-    normalized_stats.append((stats["AST"] - min_AST) / (max_AST - min_AST)*(1/n_categories))
-
-    normalized_stats.append((stats['BLK'] - min_BLK)/ (max_BLK - min_BLK)*(1/n_categories))
-
-    normalized_stats.append((stats["REB"] - min_REB) / (max_REB - min_REB)*(1/n_categories)) 
-    normalized_stats.append((stats["3PT%"] - min_ThreePt_percent) / (max_ThreePt_percent - min_ThreePt_percent)*(1/n_categories))
-    normalized_stats.append((stats["FG%"] - min_FG_percent) / (max_FG_percent - min_FG_percent)*(1/n_categories))
     normalized_stats.append((stats["A/T"] - min_AT) / (max_AT - min_AT)*(1/n_categories))
     normalized_stats.append((stats["PF"]- min_PF) / (max_PF - min_PF)*(1/n_categories))
+
+    normalized_stats.append((stats["AST"] - min_AST) / (max_AST - min_AST)*(1/n_categories))
+    normalized_stats.append((stats['BLK'] - min_BLK)/ (max_BLK - min_BLK)*(1/n_categories))
+
+    normalized_stats.append((stats["STL"] - min_STL) / (max_STL - min_STL)*(1/n_categories)) 
+    normalized_stats.append((stats["3PT%"] - min_ThreePt_percent) / (max_ThreePt_percent - min_ThreePt_percent)*(1/n_categories))
+    normalized_stats.append((stats["FG%"] - min_FG_percent) / (max_FG_percent - min_FG_percent)*(1/n_categories))
+
+
+
+
+    normalized_stats.append((stats["REB"] - min_REB) / (max_REB - min_REB)*(1/n_categories)) 
 
 
     best_stats = []
@@ -432,10 +434,6 @@ def weeklyFreeAgents():
 def main():
 
     narrow_Categories = True
-    ranked_players = rankPlayers(narrow_Categories)
-    print("Players Ranked and their individual contribution:")
-    for player in ranked_players:
-        print(player)
     roster = extractPlayers("currentroster.csv")  
     roster = bruteForce(roster, 15, narrow_Categories)
     players = extractPlayers()
@@ -460,10 +458,10 @@ def main():
     print("Optimized SQUAD:")
     for player in optimized_squad:
         print(f"{player['Name']}")
-    print(f"If for some reason everyone is playing at once heres the top 10:")
-    ten_man = bruteForce(optimized_squad, 10)
-    for player in ten_man:
-        print(player['Name'])
+    ranked_players = rankPlayers(narrow_Categories)
+    print("the TOP 20 Players Ranked and their individual contribution:")
+    for player in ranked_players[:20]:
+        print(player['Name'], sum(normalizedScore([player]*15,narrow_Categories)))
     
 if __name__ == '__main__':
     main()
